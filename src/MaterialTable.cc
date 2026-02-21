@@ -29,7 +29,8 @@ namespace insur {
     if (str[0] == '\"') {  // multiple tags or a tag with spaces inside
       tagEnd = str.find_first_of("\"", 1);
       std::vector<std::string> tags = split(str.substr(1, tagEnd-1), ";");
-      std::transform(tags.begin(), tags.end(), tags.begin(), &trim);
+      // Lambda expression wrapper for `trim`
+      std::transform(tags.begin(), tags.end(), tags.begin(), [](std::string& s) { return trim(s); });
       tag_ = tags.at(0);
       aliases_.insert(tags.begin()+1, tags.end());
     } else { // only 1 tag with no spaces inside
@@ -55,7 +56,8 @@ namespace insur {
     if (str[0] == '\"') {  // multiple tags or a tag with spaces inside
       tagEnd = str.find_first_of("\"", 1);
       std::vector<std::string> tags = split(str.substr(1, tagEnd-1), ";");
-      std::transform(tags.begin(), tags.end(), tags.begin(), &trim);
+      // Lambda expression wrapper for `trim`
+      std::transform(tags.begin(), tags.end(), tags.begin(), [](std::string& s) { return trim(s); });
       tag_ = tags.at(0);
       aliases_.insert(tags.begin()+1, tags.end());
     } else { // only 1 tag with no spaces inside

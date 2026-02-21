@@ -1,8 +1,7 @@
 #ifndef GLOBAL_FUNCS
 #define GLOBAL_FUNCS
 
-#include <math.h>
-
+#include <cmath>
 #include <string>
 #include <vector>
 #include <map>
@@ -10,6 +9,9 @@
 #include <algorithm>
 #include <iterator>
 #include <type_traits>
+
+/// Standard whitespace, i.e. ' ', '\f', '\v', '\t', '\r' and '\n'
+static constexpr char STD_WHITESPACE[] = " \f\v\t\r\n";
 
 template<typename T>
 struct EnumTraits {
@@ -80,13 +82,22 @@ template<typename T> T str2any(const std::string& from) {
   return StringConverter<std::is_enum<T>::value>::template str2any<T>(from);
 };
 
+/**
+ * @brief Tokenizes a string into a vector of tokens based on a list of delimiters
+ * 
+ * Splits the string at each of the list of separators and returns a vector of the tokens.
+ *
+ * @param str The string to be tokenized.
+ * @param seps A list of all characters to be treated as delimiters.
+ * @param keepEmpty If true, consecutive delimiters result in empty string tokens.
+ * If false, consecutive delimiters are collapsed into one.
+ * @return A std::vector of strings containing the extracted tokens.
+ * @note This function can likely be phased out in favor of inlining the underlying Boost logic.
+ */
+std::vector<std::string> split(const std::string& str, const std::string& seps = STD_WHITESPACE, bool keepEmpty = false);
 
-
-
-
-std::vector<std::string> split(const std::string& str, const std::string& seps = " \t\n", bool keepEmpty = false);
-template<class T> std::vector<T> split(const std::string& str, const std::string& seps = " \t\n", bool keepEmpty = false) {
-  auto vs = split(str, seps, keepEmpty);
+template<class T> std::vector<T> split(const std::string& str, const std::string& seps = STD_WHITESPACE, bool keepEmpty = false) {
+  std::vector<std::string> vs = split(str, seps, keepEmpty);
   std::vector<T> vt(vs.size());
   std::transform(vs.begin(), vs.end(), vt.begin(), [](std::string s) { return str2any<T>(s); });
   return vt;
@@ -100,13 +111,32 @@ template<class T, class I> std::string join(I begin, I end, const std::string& s
 
 template<template<class> class T, class U> std::string join(const T<U>& vec, const std::string& sep) { return join<U>(vec.begin(), vec.end(), sep); }
 
+/**
+ * @brief Removes leading characters from a string.
+ * @param str The string to be trimmed.
+ * @param chars The set of characters to remove (defaults to standard whitespace).
+ * @return A new string with leading characters removed.
+ * @note `str` is passed by value to allow chaining
+ */
+inline std::string ltrim(std::string str, const std::string& chars = STD_WHITESPACE) { return str.erase(0, str.find_first_not_of(chars)); }
 
-std::string ltrim(std::string str);
-std::string rtrim(std::string str);
-std::string trim(std::string str);
-std::string lctrim(std::string str, const std::string& chars);
-std::string rctrim(std::string str, const std::string& chars);
-std::string ctrim(std::string str, const std::string& chars);
+/**
+ * @brief Removes trailing characters from a string.
+ * @param str The string to be trimmed.
+ * @param chars The set of characters to remove (defaults to standard whitespace).
+ * @return A new string with trailing characters removed.
+ * @note `str` is passed by value to allow chaining
+ */
+inline std::string rtrim(std::string str, const std::string& chars = STD_WHITESPACE) { return str.erase(str.find_last_not_of(chars) + 1); }
+
+/**
+ * @brief Removes trailing and leading characters from a string.
+ * @param str The string to be trimmed.
+ * @param chars The set of characters to remove (defaults to standard whitespace).
+ * @return A new string with trailing and leading characters removed.
+ * @note `str` is passed by value to allow chaining
+ */
+inline std::string trim(std::string str, const std::string& chars = STD_WHITESPACE) { return ltrim(rtrim(str, chars), chars); }
 
 // In C++11, the default modulo operator fmod is the truncated modulo (ie -base/2 <= result < base/2).
 // Here, femod is the Euclidian modulo operator (ie 0 <= result < base).

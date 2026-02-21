@@ -270,8 +270,8 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
     cerr << "ERROR: Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
     return false;
   } else {
-    parameter = ctrim(tokens.at(0), " \"\n\t");
-    value = ctrim(tokens.at(1), " \"\n\t");
+    parameter = trim(trim(tokens.at(0)), "\"");
+    value = trim(trim(tokens.at(1)), "\"");
     return true;
   }
 }
@@ -527,8 +527,10 @@ string ConfigInputOutput::getIncludedFile(string fileName) {
 std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cfgInOut) {
   using namespace std;
 
+  // I/O channels for the configuration file
   istream& is = cfgInOut.is;
   ostream& os = cfgInOut.os;
+
   const string& absoluteFileName = cfgInOut.absoluteFileName;
   const string& relativeFileName = cfgInOut.relativeFileName;
   bool& standardInclude = cfgInOut.standardInclude;
@@ -559,8 +561,11 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
   includeSet.insert(absoluteFileName);
 
   while(getline(is, line).good()) {
+    // Erase comments from the string
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
+    // Erase standard whitespace from the string
     string trimmed = trim(line);
+
     std::size_t includeStart;
     // Merging a spec file (adding the latest includepath to the filename)
     if ((includeStart = trimmed.find("tiltedLayerSpecFile")) != string::npos) { 
@@ -572,20 +577,28 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
       line = leftPart + " " + absoluteFileNameDirectory + "/" + rightPart;
     }
 
-    if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std
-      trimmed = trimmed.substr(includeStart);
+    // Look for @include and @include-std directives
+    if ((includeStart = trimmed.find("@include")) != string::npos) {
+      // Get substring if the include directive starts somewhere in the middle of the string
+      if (includeStart) { trimmed = trimmed.substr(includeStart); }
+
       std::size_t quoteStart, quoteEnd;
       string nextIncludeFileName;
+      // Check for quotes in the string
       if ((quoteStart = trimmed.find_first_of("\"")) != string::npos && (quoteEnd = trimmed.find_last_of("\"")) != string::npos) {
-        nextIncludeFileName = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
+        // Remove quotes from string
+        std::string tmp = trimmed.substr(quoteStart, quoteEnd - quoteStart + 1);
+        nextIncludeFileName = trim(tmp, "\"");
       } else {
-        auto tokens = split(trimmed, " ");
+        // Tokenize the line and get the next included filename
+        std::vector<std::string> tokens = split(trimmed, " ");
         nextIncludeFileName = tokens.size() > 1 ? tokens[1] : "";
       }
 
       bool includeStdOld = trimmed.find("@includestd") != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported 
       bool includeStdNew = trimmed.find("@include-std") != string::npos;
 
+      // Realpath of the included file
       string fullIncludedFileName;
       int includedFileId;
       if (includeStdOld || includeStdNew) {
@@ -597,7 +610,8 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
       
       ifstream ifs(fullIncludedFileName);
 
-      if (ifs) {
+      // Recursively check for more configuration files and parse them
+      if (ifs.good()) {
         stringstream ss;
 	ConfigInputOutput nextIncludeInputOutput(ifs, ss);
 	nextIncludeInputOutput.includePathList=cfgInOut.includePathList;
