@@ -33,16 +33,20 @@ using boost::property_tree::ptree;
 
 class PathfulException : public std::invalid_argument {
   string path_;
+  string what_;
 public:
   PathfulException(const string& what, const string& path) : std::invalid_argument(what.c_str()) { pushPath(path); }
   template<class T> PathfulException(const string& what, const T& obj, const string& objid) : std::invalid_argument(what.c_str()) { pushPath(obj, objid); }
-  PathfulException(const string& what) : std::invalid_argument(what.c_str()) {}
+  PathfulException(const string& what) : std::invalid_argument(what.c_str()), what_(what) {}
   virtual ~PathfulException() throw() {};
-  void pushPath(const string& p) { path_ = p + (!path_.empty() ? "." + path_ : ""); }
+  void pushPath(const string& p) { 
+    path_ = p + (!path_.empty() ? "." + path_ : ""); 
+    what_ = path()  + " : " + std::invalid_argument::what();
+  }
   template<class T> void pushPath(const T& obj, const string& objid) { pushPath(string(typeid(obj).name()) + "(" + objid + ")"); }
   template<class T, class U> void pushPath(const T& obj, const U& objid) { pushPath(string(typeid(obj).name()) + "(" + any2str(objid) + ")"); }
   const string& path() const { return path_; }
-  virtual const char* what() const throw() override { return (path() + " : " + std::invalid_argument::what()).c_str(); }
+  virtual const char* what() const throw() override { return what_.c_str(); }
 };
 
 struct CheckedPropertyMissing : public PathfulException { CheckedPropertyMissing(const string& objid) : PathfulException("Checked property not set", objid) {} };
