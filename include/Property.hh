@@ -452,7 +452,12 @@ public:
 
 };
 
-inline ptree getChild(const ptree& pt, const string& name) { return pt.get_child(name, ptree()); }
+inline ptree getChild(const ptree& pt, const string& name) {
+  if (auto child_opt = pt.get_child_optional(name)) {
+    return child_opt.get();
+  }
+  return ptree();
+}
 inline auto getChildRange(const ptree& pt, const string& name) -> decltype(pt.equal_range(name)) { return pt.equal_range(name); } 
 
 
