@@ -2,6 +2,9 @@
 #include <PlotDrawer.hh>
 #include <TLegend.h>
 
+// Number of fluence/dose evaluation points in a single detector module
+static constexpr unsigned int NPOINTS_PER_MODULE = 9;
+
 void ReportIrradiation::analyze() {
   computeIrradiationPowerConsumption();
   computeChipPowerConsumptionTable();
@@ -70,7 +73,18 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     bool isOuterRadiusRod_;
   public:
     void preVisit() {
-      output_ << "Module_DetId,Section,Layer,Ring,moduleType,dsDistance,isOuterRadiusRod_bool,r_mm,z_mm,operatingTemperature_Celsius,biasVoltage_V,meanWidth_mm,length_mm,sensorThickness_mm,sensorsVolume_totalPerModule_mm3,sensorsPowerMean_W,sensorsPowerMax_W,sensorsFluenceMean_Hb,sensorsFluenceMax_Hb,sensorsDoseMean_Gy,sensorsDoseMax_Gy" << std::endl;
+      // Module points range from 1 to NPOINTS_PER_MODULE
+      output_ << "Module_DetId,Section,Layer,Ring,moduleType," \
+                 "dsDistance,isOuterRadiusRod_bool,r_mm,z_mm," \
+                 "operatingTemperature_Celsius,biasVoltage_V," \
+                 "meanWidth_mm,length_mm,sensorThickness_mm,sensorsVolume_totalPerModule_mm3," \
+                 "sensorsPowerMean_W,sensorsPowerMax_W," \
+                 "sensorsFluenceMean_Hb,sensorsFluenceMax_Hb," \
+                 "sensorsDoseMean_Gy,sensorsDoseMax_Gy,";
+      for (unsigned int i = 0; i < NPOINTS_PER_MODULE-1; ++i) {
+        output_ << "fluence_pt" << (i+1) << "_Hb,dose_pt" << (i+1) << "_Gy,";
+      }
+	    output_ << "fluence_pt" << NPOINTS_PER_MODULE << "_Hb,dose_pt" << NPOINTS_PER_MODULE << "_Gy" << std::endl;
     }
     void visit(const Barrel& b) { sectionName_ = b.myid(); }
     void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -100,8 +114,15 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
 	       << m.sensorsIrradiationMean() << ","
 	       << m.sensorsIrradiationMax() << ","
 	       << m.sensorsDoseMean() << ","
-	       << m.sensorsDoseMax()
-	       << std::endl;
+	       << m.sensorsDoseMax() << ",";
+
+      // Appending irradiation and dose values for each of the NPOINTS_PER_MODULE points
+      const auto& irrads = m.sensorsIrradiationValues();
+      const auto& doses = m.sensorsDoseValues();
+      for (unsigned int i = 0; i < NPOINTS_PER_MODULE-1; ++i) {
+        output_ << irrads[i] << "," << doses[i] << ",";
+      }
+	    output_ << irrads[NPOINTS_PER_MODULE-1] << "," << doses[NPOINTS_PER_MODULE-1] << std::endl;
     }
 
     std::string output() const { return output_.str(); }
