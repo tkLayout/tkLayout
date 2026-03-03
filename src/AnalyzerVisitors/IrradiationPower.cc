@@ -1,3 +1,10 @@
+#include <numeric>
+#include <utility>
+#include <vector>
+#include <limits>
+#include <cmath>
+#include <functional>
+
 #include "AnalyzerVisitors/IrradiationPower.hh"
 
 void IrradiationPowerVisitor::preVisit() {
@@ -37,17 +44,29 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   biasVoltage_ = m.biasVoltage();
   double volume = m.totalSensorsVolume() * Units::mm3 / Units::cm3; // Total volume occupied by sensors, converted to cm^3
 
+  auto reduce_max = [](double acc, double val) { return std::max(acc, val); };
+
   // A) FOR A GIVEN MODULE, GET THE FLUENCE VALUES (IRRADIATIONS) ON ITS SENSOR(S), FROM THE irradiationmap_.
   // The irradiationMap_ was obtained with FLUKA simulation.
   // The irradiationMap_ values are 1 MeV-neutrons-equivalent fluence, for an integrated luminosity = 1 fb-1 .
-  // The values are the mean and the max on different points on the module's sensor(s).
-  std::pair<double, double> irradiationMeanMax = getModuleFluenceMeanMax(irradiationMap_, m);
-  double irradiationMean = irradiationMeanMax.first * timeIntegratedLumi_;  // 1MeV-equiv-neutrons / cm^2
-  double irradiationMax = irradiationMeanMax.second * timeIntegratedLumi_;  // 1MeV-equiv-neutrons / cm^2
-  //Also get the dose
-  std::pair<double, double> doseMeanMax = getModuleDoseMeanMax(doseMap_,m);
-  double doseMean = doseMeanMax.first * timeIntegratedLumi_;
-  double doseMax = doseMeanMax.second * timeIntegratedLumi_;
+
+  // Get the irradiation on all the points of the module sensors
+  std::vector<double> irradiationValues = getModuleFluenceValues(irradiationMap_, m);
+  // Get the mean and max
+  double one_over_nPoints = 1. / irradiationValues.size();
+  double irradiationMean = std::transform_reduce(irradiationValues.begin(), irradiationValues.end(), 0.,
+                                                 std::plus<double>(), [&one_over_nPoints](double val) { return val * one_over_nPoints; });
+  double irradiationMax = std::reduce(irradiationValues.begin(), irradiationValues.end(),
+                                      std::numeric_limits<double>::lowest(), reduce_max);
+
+  // Also get the dose
+  std::vector<double> doseValues = getModuleDoseValues(doseMap_, m);
+  // and the mean and max once again
+  one_over_nPoints = 1. / doseValues.size();
+  double doseMean = std::transform_reduce(doseValues.begin(), doseValues.end(), 0.,
+                                          std::plus<double>(), [&one_over_nPoints](double val) { return val * one_over_nPoints; });
+  double doseMax = std::reduce(doseValues.begin(), doseValues.end(), std::numeric_limits<double>::lowest(), reduce_max);
+
   if(lumiInformation==""){
     lumiInformation+=std::to_string(int(timeIntegratedLumi_));
     lumiInformation+=" fb<sup>-1</sup>";
@@ -79,10 +98,12 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   // C) STORE RESULTS
   // Results for each module
   //
-  m.sensorsIrradiationMean(irradiationMean); // 1MeV-equiv-neutrons / cm^2
-  m.sensorsIrradiationMax(irradiationMax);   // 1MeV-equiv-neutrons / cm^2
-  m.sensorsDoseMean(doseMean); // Gy
-  m.sensorsDoseMax(doseMax);   // Gy
+  m.sensorsIrradiationValues(irradiationValues);  // 1MeV-equiv-neutrons / cm^2
+  m.sensorsIrradiationMean(irradiationMean);      // 1MeV-equiv-neutrons / cm^2
+  m.sensorsIrradiationMax(irradiationMax);        // 1MeV-equiv-neutrons / cm^2
+  m.sensorsDoseValues(doseValues);  // Gy
+  m.sensorsDoseMean(doseMean);      // Gy
+  m.sensorsDoseMax(doseMax);        // Gy
   m.sensorsIrradiationPowerMean(sensorsPowerMean);  // W
   m.sensorsIrradiationPowerMax(sensorsPowerMax);    // W
   // Also gather results for all modules of a given type, identified by ModuleRef.
@@ -94,9 +115,9 @@ void IrradiationPowerVisitor::visit(DetectorModule& m) {
   sensorsFluenceMean_[moduleRef] += irradiationMean;
   sensorsDoseMean_[moduleRef] += doseMean;
   // max
-  sensorsPowerMax_[moduleRef] = MAX(sensorsPowerMax_[moduleRef], sensorsPowerMax);
-  sensorsFluenceMax_[moduleRef] = MAX(sensorsFluenceMax_[moduleRef], irradiationMax);
-  sensorsDoseMax_[moduleRef] = MAX(sensorsDoseMax_[moduleRef], doseMax);
+  sensorsPowerMax_[moduleRef] = std::max(sensorsPowerMax_[moduleRef], sensorsPowerMax);
+  sensorsFluenceMax_[moduleRef] = std::max(sensorsFluenceMax_[moduleRef], irradiationMax);
+  sensorsDoseMax_[moduleRef] = std::max(sensorsDoseMax_[moduleRef], doseMax);
   // counter
   modulesCounter_[moduleRef]++;
   // The list of modules per irradiation type
@@ -227,81 +248,71 @@ void IrradiationPowerVisitor::postVisit() {
 
 
 /**
-    Get, for a given module, the fluence values (irradiations) on its sensor(s), from an irradiationmap.
-    Several points on the module's sensor(s) are considered.
-    @return : pair (mean, max) of the irradiation values on the different points.
+ * 
 */
-std::pair<double, double> IrradiationPowerVisitor::getModuleFluenceMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m) {
+std::vector<double> IrradiationPowerVisitor::getModuleFluenceValues(const IrradiationMapsManager* irradiationMap, const DetectorModule& m) {
 
   // Get the irradiation from irradiationMap at differents points of the modules's sensor(s).
   std::vector<double> irradiationValues;
-  for (const auto& s : m.sensors()) {
 
+  for (const auto& s : m.sensors()) {
     // Center of the sensor
     const std::pair<double,double>& center = std::make_pair(s.center().Z(), s.center().Rho());
-    double centerIrradiation = irradiationMap->calculateIrradiationPower(center);
+    double centerIrradiation = irradiationMap->calculateIrradiationPower(center) * timeIntegratedLumi_;
     irradiationValues.push_back(centerIrradiation);
 
+    const auto& envelopePoly = s.envelopePoly();
+    const auto& envelopeMidPoly = s.envelopeMidPoly();
+
     // Many vertexes of the sensor
-    for (int i = 0; i < s.envelopePoly().getNumSides(); i++) {
+    for (int i = 0; i < envelopePoly.getNumSides(); i++) {
       // each vertex
-      std::pair<double,double> vertex = std::make_pair(s.envelopePoly().getVertex(i).Z(), s.envelopePoly().getVertex(i).Rho());
-      double vertexIrradiation = irradiationMap->calculateIrradiationPower(vertex);
+      std::pair<double, double> vertex = std::make_pair(envelopePoly.getVertex(i).Z(), envelopePoly.getVertex(i).Rho());
+      double vertexIrradiation = irradiationMap->calculateIrradiationPower(vertex) * timeIntegratedLumi_;
       irradiationValues.push_back(vertexIrradiation);
 
       // each middle of 2 consecutive vertexes
-      std::pair<double,double> midVertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
-      double midVertexIrradiation = irradiationMap->calculateIrradiationPower(midVertex);
+      std::pair<double, double> midVertex = std::make_pair(envelopeMidPoly.getVertex(i).Z(), envelopeMidPoly.getVertex(i).Rho());
+      double midVertexIrradiation = irradiationMap->calculateIrradiationPower(midVertex) * timeIntegratedLumi_;
       irradiationValues.push_back(midVertexIrradiation);
     }
   }
 
-  // For a given module, take the average and the max irradiation on all the considered points.
-  double sum = std::accumulate(irradiationValues.begin(), irradiationValues.end(), 0.);
-  double irradiationMean = sum / irradiationValues.size();                                   // 1MeV-equiv-neutrons / cm^2 / fb-1
-  double irradiationMax = *max_element(irradiationValues.begin(), irradiationValues.end());  // 1MeV-equiv-neutrons / cm^2 / fb-1
-
-  std::pair<double, double> irradiationMeanMax = std::make_pair(irradiationMean, irradiationMax);
-  return irradiationMeanMax;
+  return irradiationValues;
 }
 
 /**
-    Get, for a given module, the dose values on its sensor(s), from an irradiationmap.
-    Several points on the module's sensor(s) are considered.
-    @return : pair (mean, max) of the doses at the different points.
+ * 
 */
-std::pair<double, double> IrradiationPowerVisitor::getModuleDoseMeanMax(const IrradiationMapsManager* doseMap, const DetectorModule& m) {
+std::vector<double> IrradiationPowerVisitor::getModuleDoseValues(const IrradiationMapsManager* doseMap, const DetectorModule& m) {
 
   // Get the dose from doseMap at differents points of the modules's sensor(s).
   std::vector<double> doseValues;
-  for (const auto& s : m.sensors()) {
 
+  for (const auto& s : m.sensors()) {
     // Center of the sensor
     const std::pair<double,double>& center = std::make_pair(s.center().Z(), s.center().Rho());
-    double centerDose = doseMap->calculateIrradiationPower(center);
+    double centerDose = doseMap->calculateIrradiationPower(center) * timeIntegratedLumi_;
     doseValues.push_back(centerDose);
 
+    const auto& envelopePoly = s.envelopePoly();
+    const auto& envelopeMidPoly = s.envelopeMidPoly();
+
     // Many vertexes of the sensor
-    for (int i = 0; i < s.envelopePoly().getNumSides(); i++) {
+    for (int i = 0; i < envelopePoly.getNumSides(); i++) {
       // each vertex
-      std::pair<double,double> vertex = std::make_pair(s.envelopePoly().getVertex(i).Z(), s.envelopePoly().getVertex(i).Rho());
-      double vertexDose = doseMap->calculateIrradiationPower(vertex);
+      std::pair<double, double> vertex = std::make_pair(envelopePoly.getVertex(i).Z(), envelopePoly.getVertex(i).Rho());
+      double vertexDose = doseMap->calculateIrradiationPower(vertex) * timeIntegratedLumi_;
       doseValues.push_back(vertexDose);
 
       // each middle of 2 consecutive vertexes
-      std::pair<double,double> midVertex = std::make_pair(s.envelopeMidPoly().getVertex(i).Z(), s.envelopeMidPoly().getVertex(i).Rho());
-      double midVertexDose = doseMap->calculateIrradiationPower(midVertex);
+      std::pair<double, double> midVertex = std::make_pair(envelopeMidPoly.getVertex(i).Z(), envelopeMidPoly.getVertex(i).Rho());
+      double midVertexDose = doseMap->calculateIrradiationPower(midVertex) * timeIntegratedLumi_;
       doseValues.push_back(midVertexDose);
     }
   }
 
-  // For a given module, take the average and the max irradiation on all the considered points.
-  double sum = std::accumulate(doseValues.begin(), doseValues.end(), 0.);
-  double doseMean = sum / doseValues.size();                                   // Gy / fb-1
-  double doseMax = *max_element(doseValues.begin(), doseValues.end());  // Gy / fb-1
-
-  std::pair<double, double> doseMeanMax = std::make_pair(doseMean, doseMax);
-  return doseMeanMax;
+  return doseValues;
 }
 
 
