@@ -26,8 +26,8 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
   const IrradiationMapsManager* doseMap_;
-  std::pair<double, double> getModuleFluenceMeanMax(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
-  std::pair<double, double> getModuleDoseMeanMax(const IrradiationMapsManager* doseMap, const DetectorModule& m);
+  std::vector<double> getModuleFluenceValues(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
+  std::vector<double> getModuleDoseValues(const IrradiationMapsManager* doseMap, const DetectorModule& m);
   const double computeSensorsPower(const double& totalFluence,
 				   const double& alphaParam, const double& volume, const double& referenceTemp,
 				   const double& operatingTemp, const double& biasVoltage) const;
