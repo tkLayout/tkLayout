@@ -12,11 +12,7 @@
 #include "Property.hh"
 #include "Disk.hh"
 #include "Visitable.hh"
-
-namespace material {
-  class SupportStructure;
-}
-
+#include "SupportStructure.hh"
 
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string>, public Visitable {
  private:
