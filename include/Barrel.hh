@@ -12,10 +12,7 @@
 #include "Property.hh"
 #include "Layer.hh"
 #include "Visitable.hh"
-
-namespace material {
-  class SupportStructure;
-}
+#include "SupportStructure.hh"
 
 class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
 
