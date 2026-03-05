@@ -1,9 +1,25 @@
 #ifndef _DETIDBUILDER_HH
 #define	_DETIDBUILDER_HH
 
+#include <cmath>
+#include <cstdint>
+#include <map>
+#include <vector>
+#include <string>
+#include <tuple>
+
 #include "global_constants.hh"
 #include "global_funcs.hh"
-#include <Tracker.hh>
+#include "Visitor.hh"
+
+class Endcap;
+class Disk;
+class Ring;
+class Layer;
+class RodPair;
+class BarrelModule;
+class EndcapModule;
+class Sensor;
 
 /** See https://github.com/tkLayout/tkLayout/wiki/DetIds-in-tkLayout-for-the-entire-Tracker .
  * All geometry hierarchy levels (for example OT Barrel, or Ring) are assigned a size (number of bits) and an Id.
@@ -42,7 +58,6 @@ private:
 
   std::map<int, uint32_t> geometryHierarchyIds_;  // WHAT IS CALCULATED HERE !! Id associated to each level in the geometry hierarchy.
 
-  bool isTiltedLayer_;
   int numRods_;
   int numFlatRings_;
   int numRings_;
