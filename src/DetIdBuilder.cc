@@ -169,7 +169,7 @@ void BarrelDetIdBuilder::visit(BarrelModule& m) {
 void BarrelDetIdBuilder::visit(Sensor& s) {
   if (s.subdet() != ModuleSubdetector::BARREL) return;
 
-  geometryHierarchyIds_[isPixelTracker_ ? PixelBarrel::SENSOR_LEVEL : TOB::SENSOR_LEVEL] = isPixelTracker_ ? DetId::Fixed_0 : s.innerOuter();
+  geometryHierarchyIds_[isPixelTracker_ ? PixelBarrel::SENSOR_LEVEL : TOB::SENSOR_LEVEL] = s.innerOuter();
 
   s.buildDetId(geometryHierarchyIds_, geometryHierarchySizes_);
 }

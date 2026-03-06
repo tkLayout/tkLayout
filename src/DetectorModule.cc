@@ -87,21 +87,19 @@ void DetectorModule::build() {
   }
   if (numSensors() > 0) {
     for (int i = 0; i < numSensors(); i++) {
+      // Build the sensor
       Sensor* s = GeometryFactory::make<Sensor>();
       s->parent(this);
       s->myid(i+1);
       s->store(propertyTree());
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
-      if (numSensors() == 1) s->innerOuter(SensorPosition::NO);
-      else if (sensorLayout() == SensorLayout::MONO) s->innerOuter(SensorPosition::NO);
-      else {
-	if (i == 0) s->innerOuter(SensorPosition::LOWER);
-	else if (i == 1) s->innerOuter(SensorPosition::UPPER);
-	else s->innerOuter(SensorPosition::NO);
-      }
+      if (numSensors() == 1 || i >= 2) s->innerOuter(SensorPosition::NO);
+      else s->innerOuter(i == 0 ? SensorPosition::LOWER : SensorPosition::UPPER);
       s->build();
+
+      // Add it to the module's list of sensors
       sensors_.push_back(s);
-      materialObject_.sensorChannels[i+1]=s->numChannels();
+      materialObject_.sensorChannels[i+1] = s->numChannels();
     }
   } else {
     Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
