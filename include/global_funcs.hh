@@ -110,22 +110,27 @@ std::string ctrim(std::string str, const std::string& chars);
 
 /**
  * @brief Computes the floating-point Euclidean remainder of the division operation `x / y`
+ * with horizontal shifting
  * 
  * The Euclidean floating-point remainder of the division operation `x / y` calculated by
  * this function is exactly the value `x - equot * |y|`, where `equot` is `floor(x / |y|)`.
  * 
  * The returned value is always positive and is less than `y` in magnitude.
  * 
+ * Due to the way tkLayout handles angles, this function includes a small horizontal shift `epsilon`
+ * to ensure continuity when `x` is neighboring a multiple of `y`.
+ * 
  * @tparam T Arithmetic type, the type of `x` and `y`.
  * @param x, y Floating-point or integer values.
+ * @param epsilon A small horizontal shift of the result. Default is `1e-5`, casts to 0 when T is an integer type.
  * @return Euclidean floating-point remainder of the division `x / y` as defined above.
  * @note This function leverages `std::fmod` and adjusts the results for negative remainders. 
  * Error handling and implementation details are similar to `std::fmod`.
  */
 template<typename T> 
-inline T femod(const T& x, const T& y) {
+inline T femod(const T x, const T y, const T epsilon = 1e-5) {
   // res = x - y*round(x/y)
-  T res = std::fmod(x, y);
+  T res = std::fmod(x + epsilon, y);
   // Adjust the remainder if res < 0
   if (std::signbit(res)) { res += std::abs(y); }
   // res >= |y| is possible due to precision loss in FP operations, wrap the result back to 0
