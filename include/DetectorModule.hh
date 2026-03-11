@@ -100,8 +100,10 @@ public:
   ReadonlyProperty<double, AutoDefault> powerPerModule;
   Property<double, AutoDefault> sensorsIrradiationPowerMean;
   Property<double, AutoDefault> sensorsIrradiationPowerMax;
+  Property<double, AutoDefault> sensorsIrradiationCenter;
   Property<double, AutoDefault> sensorsIrradiationMean;
   Property<double, AutoDefault> sensorsIrradiationMax;
+  Property<double, AutoDefault> sensorsDoseCenter;
   Property<double, AutoDefault> sensorsDoseMean;
   Property<double, AutoDefault> sensorsDoseMax;
 

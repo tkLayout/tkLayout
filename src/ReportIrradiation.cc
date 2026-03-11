@@ -70,7 +70,13 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
     bool isOuterRadiusRod_;
   public:
     void preVisit() {
-      output_ << "Module_DetId,Section,Layer,Ring,moduleType,dsDistance,isOuterRadiusRod_bool,r_mm,z_mm,operatingTemperature_Celsius,biasVoltage_V,meanWidth_mm,length_mm,sensorThickness_mm,sensorsVolume_totalPerModule_mm3,sensorsPowerMean_W,sensorsPowerMax_W,sensorsFluenceMean_Hb,sensorsFluenceMax_Hb,sensorsDoseMean_Gy,sensorsDoseMax_Gy" << std::endl;
+      output_ << "Module_DetId,Section,Layer,Ring,moduleType," \
+                 "dsDistance,isOuterRadiusRod_bool,r_mm,z_mm," \
+                 "operatingTemperature_Celsius,biasVoltage_V," \
+                 "meanWidth_mm,length_mm,sensorThickness_mm,sensorsVolume_totalPerModule_mm3," \
+                 "sensorsPowerMean_W,sensorsPowerMax_W," \
+                 "sensorsFluenceCenter_Hb,sensorsFluenceMean_Hb,sensorsFluenceMax_Hb,"
+                 "sensorsDoseCenter_Gy,sensorsDoseMean_Gy,sensorsDoseMax_Gy" << std::endl;
     }
     void visit(const Barrel& b) { sectionName_ = b.myid(); }
     void visit(const Endcap& e) { sectionName_ = e.myid(); }
@@ -97,11 +103,12 @@ std::string ReportIrradiation::createSensorsIrradiationCsv() {
 	       << std::fixed << std::setprecision(3)
 	       << m.sensorsIrradiationPowerMean() << ","
 	       << m.sensorsIrradiationPowerMax() << ","
+	       << m.sensorsIrradiationCenter() << ","
 	       << m.sensorsIrradiationMean() << ","
 	       << m.sensorsIrradiationMax() << ","
+	       << m.sensorsDoseCenter() << ","
 	       << m.sensorsDoseMean() << ","
-	       << m.sensorsDoseMax()
-	       << std::endl;
+	       << m.sensorsDoseMax() << std::endl;
     }
 
     std::string output() const { return output_.str(); }

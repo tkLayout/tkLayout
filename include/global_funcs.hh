@@ -24,9 +24,32 @@ struct EnumTraits {
 #define _NOT_STRING_ENUM false
 template<bool>
 class StringConverter {};
-
 template<>
 class StringConverter<_NOT_STRING_ENUM> {
+  // Base string extractor for normal non-enum types (int, double, etc.))
+  template<typename T>
+  struct StringExtractor {
+    // Wrap the operator>> to extract a value of type T from a stringstream
+    static void extract(std::stringstream& ss, T& value) { ss >> value; }
+  };
+
+  // StringExtractor specialization for std::vector<T>
+  template<typename T>
+  struct StringExtractor<std::vector<T>> {
+    // Wrap the operator>> to extract a value of type T from a stringstream
+    static void extract(std::stringstream& ss, std::vector<T>& vec) {
+      static_assert(std::is_arithmetic<T>::value, "Vector element type must be numeric.");
+      vec.clear();
+      T item;
+      // Reads space-separated items until the stringstream is empty
+      while (ss >> item) {
+        vec.push_back(item);
+        // Ignore comma separators if present
+        if (ss.peek() == ',') ss.ignore();
+      }
+    }
+  };
+
   StringConverter();
 public:
   template<typename ArgType> static std::string any2str(const ArgType& from, int precision = -1) {
@@ -47,7 +70,7 @@ public:
   template<typename RetType> static RetType str2any(const std::string& from) {
     std::stringstream ssfrom(from);
     RetType to;
-    ssfrom >> to;
+    StringExtractor<RetType>::extract(ssfrom, to);
     return to;
   }
 };
