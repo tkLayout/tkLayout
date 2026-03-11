@@ -4,6 +4,9 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <tuple>
+#include <unordered_map>
+#include <string_view>
 #include <utility>
 
 #include "global_constants.hh"
@@ -26,8 +29,7 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double biasVoltage_;
   const IrradiationMapsManager* irradiationMap_;
   const IrradiationMapsManager* doseMap_;
-  std::vector<double> getModuleFluenceValues(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
-  std::vector<double> getModuleDoseValues(const IrradiationMapsManager* doseMap, const DetectorModule& m);
+  std::unordered_map<std::string_view, double> getModuleIrradiationValues(const IrradiationMapsManager* irradiationMap, const DetectorModule& m);
   const double computeSensorsPower(const double& totalFluence,
 				   const double& alphaParam, const double& volume, const double& referenceTemp,
 				   const double& operatingTemp, const double& biasVoltage) const;
