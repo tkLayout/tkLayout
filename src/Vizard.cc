@@ -8931,9 +8931,11 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
   std::string Vizard::createModulesDetIdListCsv() {
-    std::stringstream header;
-    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, sensorCenterRho_mm/D, sensorCenterZ_mm/D, tiltAngle_deg/D, skewAngle_deg/D, phi_deg/D, meanWidth_mm/D, length_mm/D, sensorSpacing_mm/D, sensorThickness_mm/D" << std::endl;
-    std::string detIdsListCsv = header.str();
+    std::string detIdsListCsv = "DetId/i,BinaryDetId/B,Section/C,Layer/I,Ring/I,"\
+                                "sensorCenterRho_mm/D,sensorCenterZ_mm/D," \
+                                "tiltAngle_deg/D,skewAngle_deg/D,yawAngle_deg/D,phi_deg/D," \
+                                "vtxOneX_mm/D,vtxOneY_mm/D,vtxTwoX_mm/D,vtxTwoY_mm/D,vtxThreeX_mm/D,vtxThreeY_mm/D,vtxFourX_mm/D,vtxFourY_mm/D," \
+                                "meanWidth_mm/D,length_mm/D,sensorSpacing_mm/D,sensorThickness_mm/D\n";
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
       Tracker& tracker = *(trackers_.at(i));
@@ -8944,9 +8946,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
   std::string Vizard::createSensorsDetIdListCsv() {
-    std::stringstream header;
-    header << "DetId/i, BinaryDetId/B, Section/C, Layer/I, Ring/I, sensorCenterRho_mm/D, sensorCenterZ_mm/D, phi_deg/D" << std::endl;
-    std::string detIdsListCsv = header.str();
+    std::string detIdsListCsv = "DetId/i,BinaryDetId/B,Section/C,Layer/I,Ring/I,sensorCenterRho_mm/D,sensorCenterZ_mm/D,phi_deg/\n";
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
       Tracker& tracker = *(trackers_.at(i));
