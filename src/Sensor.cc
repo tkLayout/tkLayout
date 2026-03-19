@@ -36,15 +36,20 @@ const Polygon3d<4>& Sensor::hitPoly() const {
   double offset = sensorNormalOffset();
   hitPoly_ = CoordinateOperations::computeTranslatedPolygon(parent_->basePoly(), offset);
   // Special case for split-sensor modules: sensor's polygon is reduced and shifted along local Y
-  if (parent_->numSensors() > 1 && parent_->sensorLayout() == SensorLayout::MONO) {
+  if (parent_->numSensors() == 2 && parent_->sensorLayout() == SensorLayout::MONO) {
     const XYZVector unitY(parent_->getLocalY());
+
     // Resizing the sensor polygon wrt the module polygon, accounting for the dead space between sensors
     double moduleLength = parent_->length();
     double deadLength = parent_->centralDeadAreaLength();
     double sensorLength = moduleLength / parent_->numSensors() - deadLength / 2.;
     Polygon3d<4> *poly = CoordinateOperations::computeResizedPolygon(*hitPoly_, unitY, sensorLength/moduleLength);
-    // Shifting the sensor
-    double offsetY = -moduleLength/2. + (myid() - 1) * (sensorLength + deadLength) + sensorLength / 2.;
+
+    // UPPER sensor is shifted up in the *local* Y direction
+    double offsetY = (moduleLength - sensorLength) * 0.5;
+    offsetY = innerOuter() == SensorPosition::UPPER ? offsetY : -offsetY;
+
+    // Apply the shift along the local Y direction and update the polygon
     poly->translate(unitY*offsetY);
     delete hitPoly_;
     hitPoly_ = poly;

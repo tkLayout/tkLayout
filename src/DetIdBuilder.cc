@@ -212,19 +212,19 @@ void EndcapDetIdBuilder::visit(Ring& r) {
 }
  
 void EndcapDetIdBuilder::visit(EndcapModule& m) {
-  double phiSegment = 2 * M_PI / numModules_;                // Phi interval between 2 consecutive modules.
-  double startAngle = femod( m.center().Phi(), phiSegment);  // Calculates the smallest positive Phi in the Ring.
+  // Phi identifier (range: 1 to numModules_)
+  uint32_t phiRef_ = m.myid();
 
-  // Calculates 1-based Phi identifier (range: 1 to numModules_)
-  uint32_t phiRef_ = 1 + round(femod(m.center().Phi() - startAngle, 2*M_PI) / phiSegment);
+  // Z+ modules are copied to the Z- side with a +180° shift, Phi ∈ [-pi, pi]
+  if (m.side() < 0)
+    phiRef_ = 1 + ((3 * numModules_ / 2 - phiRef_) % numModules_);
 
   if (isPixelTracker_) { // Pixel Endcap
     if (hasSubDisks_) {
-      const bool isOddModule = (phiRef_ % 2 == 1);
       // Increasing in |z|
-      geometryHierarchyIds_[PixelEndcap::SUBDISK_LEVEL] = isOddModule ? DetId::Fixed_0 : DetId::Fixed_1;
+      geometryHierarchyIds_[PixelEndcap::SUBDISK_LEVEL] = m.isSmallerAbsZModuleInRing() ? DetId::Fixed_0 : DetId::Fixed_1;
       // Increasing in phi
-      geometryHierarchyIds_[PixelEndcap::MODULE_LEVEL] = isOddModule ? ((phiRef_ + 1) / 2) : (phiRef_ / 2);
+      geometryHierarchyIds_[PixelEndcap::MODULE_LEVEL] = (phiRef_ % 2 == 1) ? ((phiRef_ + 1) / 2) : (phiRef_ / 2);
     }
     else {
       logWARNING("No CMSSW DetId scheme exists for Pixel Endcap with Single Disk.");
@@ -240,12 +240,6 @@ void EndcapDetIdBuilder::visit(EndcapModule& m) {
       geometryHierarchyIds_[TID::MODULE_LEVEL] = phiRef_;
     }
   }
-
-  // First module with Phi > 0 has phiRef 1. 
-  // Next module (with bigger Phi) has phiRef 2. 
-  // phiRef increments with increasing Phi.
-  // If we have subdisks, apply the same logic but to 
-  // modules in individual subdisks
 
   // Sensor level is irrelevant at module level, assign a fixed value
   geometryHierarchyIds_[Endcaps::SENSOR_LEVEL] = DetId::Fixed_0;
