@@ -1,5 +1,6 @@
 #include "Ring.hh"
 #include "MessageLogger.hh"
+#include "global_funcs.hh"
 
 inline void Ring::check() {
   PropertyObject::check();
@@ -83,18 +84,25 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
   double alignmentRotation = alignEdges() ? 0.5 : 0.;
   double deltaPhiNom = 2.*M_PI/numMods;
   double deltaPhiLarge = deltaPhiNom+2*phiShift; //This is the spacing in phi between modules around +/- 90 deg
-  double nominalZRot = 0.;
-  if (deltaPhiLarge!=deltaPhiNom){ deltaPhiNom = deltaPhiNom-(4*phiShift/(numMods-2));} //Adjust nominal module spacing if the spacing between modules around +/- 90 deg is more than the nominal
+  
+  if (deltaPhiLarge != deltaPhiNom) {
+    // Adjust nominal module spacing to keep the same average spacing between modules
+    deltaPhiNom -= 4 * phiShift / (numMods - 2);
+  }
+
   templ->store(propertyTree());
 
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
-    if (moduleNode.count(i) > 0) {
-     templ->store(moduleNode.at(i)); // Store module config in the template module so we have access to it later
-    } 
+    auto nodeIt = moduleNode.find(i);
+    if (nodeIt != moduleNode.end()) {
+      // Store module config in the template module
+      templ->store(nodeIt->second);
+    }
+
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->build();
     mod->translate(XYZVector(modTranslateX, 0, 0));
-    mod->myid(i+1);
+
     double yawAngle = 0;
     bool doYaw = false;
     if (mod->yawAngleFromConfig.state()) {
@@ -102,53 +110,65 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
       mod->notInRegularRing();
       yawAngle = mod->yawAngleFromConfig();
     }
-    if (mod->yawFlip()) {
+    else if (mod->yawFlip()) {
       doYaw = true;
       yawAngle += M_PI;
     }
+
     if (doYaw) {
-      double tmp_r = mod->center().Rho();
-      mod->translateR(-tmp_r); //perform yaw angle rotation with the module at the centre
+      double rho_center = mod->center().Rho();
+
+      mod->translateR(-rho_center);
       mod->yaw(yawAngle);
-      if(mod->manualRhoCentre() > 0 ){// For irregular rings (with yawed modules) that need to stay tangent to the same inner/outer radius, the module centre is shifted
-        mod->translateR(mod->manualRhoCentre()-mod->center().Rho());
-      } else {
-        mod->translateR(tmp_r-mod->center().Rho());
-      }
+
+      if (mod->manualRhoCentre() > 0)
+        mod->translateR(mod->manualRhoCentre());
+      else
+        mod->translateR(rho_center);
     }
-    if (deltaPhiLarge == deltaPhiNom) { //In this case we have uniform phi spacing between the modules
-      nominalZRot = (i + alignmentRotation)*deltaPhiNom;
-    } else { 
-      mod->notInRegularRing();
-      //Ensure larger spacing is used between modules around +/- 90 deg - use pi and not pi/2 to switch between the two calculations as there is a range
-      //translation later and this gives the correct spacing in the end. 
-      if (((i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom)) < M_PI ){
-        nominalZRot = (i + alignmentRotation)*deltaPhiNom + alignmentRotation*(deltaPhiLarge-deltaPhiNom);
-      } else {
-        nominalZRot = (i + alignmentRotation)*deltaPhiNom + (1+alignmentRotation)*(deltaPhiLarge-deltaPhiNom);
-      } 
-    }
-    if (mod->manualPhiCenter.state() && mod->manualPhiCenterDeg.state()) {
-        logWARNING("A module was set both manualPhiCenter and manualPhiCenterDeg. Only the former will be considered");
-    }
+
+    if (mod->manualPhiCenter.state() && mod->manualPhiCenterDeg.state())
+      logWARNING("A module was set both manualPhiCenter and manualPhiCenterDeg. Only the former will be considered");
+
+    double nominalZRot = 0.;
     if (mod->manualPhiCenter.state()) {
       nominalZRot = mod->manualPhiCenter();
-    } else if (mod->manualPhiCenterDeg.state()) {
-      nominalZRot = mod->manualPhiCenterDeg() / 180 * M_PI;
     }
-    mod->rotateZ(nominalZRot);
-    mod->rotateZ(zRotation());
-    mod->translateZ(parity*smallDelta);
+    else if (mod->manualPhiCenterDeg.state()) {
+      nominalZRot = mod->manualPhiCenterDeg() * (M_PI / 180.0);
+    }
+    else if (deltaPhiLarge == deltaPhiNom) {
+      // Uniform phi spacing between the modules
+      nominalZRot = (i + alignmentRotation) * deltaPhiNom;
+    }
+    else {
+      // Modules around +/- 90° have a larger spacing 
+      mod->notInRegularRing();
+
+      // Increase rotation for modules in the 1st half of the ring, decrease for those in the 2nd half
+      double diffPhi = deltaPhiLarge - deltaPhiNom;
+      nominalZRot = (i + alignmentRotation) * deltaPhiNom + alignmentRotation * diffPhi;
+      if (nominalZRot >= M_PI)
+        nominalZRot += diffPhi;
+    }
+
+    mod->rotateZ(nominalZRot + zRotation());
+    mod->translateZ(parity * smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
-    const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) // Case where ring modules are placed on both sides of a same dee.
-			                                    // Half of the ring modules are flipped: 
-			                                    // the ones placed with parity < 0, hence on the small |Z| side.
-			    : isSmallerAbsZRingInDisk()); // Case where ring modules are placed on 4 dees.
-                                                          // If the ring is on the small |Z| side with respect to the disk:
-                                                          // all ring modules are flipped.
+
+    const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) : isSmallerAbsZRingInDisk());
     mod->flipped(isFlipped);
-    modules_.push_back(mod);  
+    modules_.push_back(mod);
   }
+
+  // Sort the modules in increasing phi and assign their IDs
+  modules_.sort([](const EndcapModule& mod_a, const EndcapModule& mod_b) {
+    // Use femod to properly handle small numerical differences in phi that can arise from the module placement
+    double a = femod(mod_a.center().Phi(), 2.0 * M_PI);
+    double b = femod(mod_b.center().Phi(), 2.0 * M_PI);
+    return a < b;
+  });
+  for (size_t id = 0; id < modules_.size(); id++) { modules_[id].myid(id + 1); }
 }
 
 
