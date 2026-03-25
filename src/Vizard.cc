@@ -8946,7 +8946,7 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
   }
 
   std::string Vizard::createSensorsDetIdListCsv() {
-    std::string detIdsListCsv = "DetId/i,BinaryDetId/B,Section/C,Layer/I,Ring/I,sensorCenterRho_mm/D,sensorCenterZ_mm/D,phi_deg/\n";
+    std::string detIdsListCsv = "DetId/i,BinaryDetId/B,Section/C,Layer/I,Ring/I,sensorCenterRho_mm/D,sensorCenterZ_mm/D,phi_deg/D\n";
 
     for (unsigned int i=0; i< trackers_.size(); ++i) {
       Tracker& tracker = *(trackers_.at(i));
