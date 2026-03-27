@@ -12,7 +12,15 @@
 
 
 enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
-enum SensorPosition { NO, LOWER, UPPER };
+
+/// Sensor position in the module's local system of reference
+enum SensorPosition {
+  /// Default value, or modules with 1 sensor only
+  NO,
+  /// Z-axis for stacked sensors, Y-axis for planar
+  LOWER, UPPER 
+};
+
 enum class SensorType { Pixel, Largepix, Strip, None };
 
 class DetectorModule;
