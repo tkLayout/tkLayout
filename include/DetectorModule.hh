@@ -737,7 +737,11 @@ public:
   TableRef tableRef() const { return (TableRef){ subdetectorName(), disk(), ring() }; }
   UniRef uniRef() const { return UniRef{ subdetectorName(), disk(), ring(), blade(), side() }; }
 
+  std::size_t getPhiIdentifier() const { return phiIdentifier; }
+  void setPhiIdentifier(std::size_t id) { phiIdentifier = id; }
+
 private:
+  std::size_t phiIdentifier; /// DetId phi identifier
   bool isSmallerAbsZModuleInRing_;
 };
 

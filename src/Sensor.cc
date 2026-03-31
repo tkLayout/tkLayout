@@ -47,7 +47,7 @@ const Polygon3d<4>& Sensor::hitPoly() const {
 
     // UPPER sensor is shifted up in the *local* Y direction
     double offsetY = (moduleLength - sensorLength) * 0.5;
-    offsetY = innerOuter() == SensorPosition::UPPER ? offsetY : -offsetY;
+    offsetY = (innerOuter() == SensorPosition::UPPER) ? offsetY : -offsetY;
 
     // Apply the shift along the local Y direction and update the polygon
     poly->translate(unitY*offsetY);

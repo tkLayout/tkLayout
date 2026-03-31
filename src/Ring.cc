@@ -102,6 +102,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->build();
     mod->translate(XYZVector(modTranslateX, 0, 0));
+    mod->myid(i+1);
 
     double yawAngle = 0;
     bool doYaw = false;
@@ -110,7 +111,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
       mod->notInRegularRing();
       yawAngle = mod->yawAngleFromConfig();
     }
-    else if (mod->yawFlip()) {
+    if (mod->yawFlip()) {
       doYaw = true;
       yawAngle += M_PI;
     }
@@ -156,19 +157,23 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     mod->translateZ(parity * smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
 
-    const bool isFlipped = (!isRingOn4Dees() ? (parity < 0) : isSmallerAbsZRingInDisk());
+    const bool isFlipped = (!isRingOn4Dees() 
+                            ? (parity < 0)                // Two-sided Dees: modules on small |Z| side are flipped
+                            : isSmallerAbsZRingInDisk()); // Four Dees: all modules in the inner ring are flipped
+
     mod->flipped(isFlipped);
     modules_.push_back(mod);
   }
 
-  // Sort the modules in increasing phi and assign their IDs
+  // Sort the modules in increasing phi and set their IDs
   modules_.sort([](const EndcapModule& mod_a, const EndcapModule& mod_b) {
-    // Use femod to properly handle small numerical differences in phi that can arise from the module placement
+    // femod handles small differences in phi in module placement
     double a = femod(mod_a.center().Phi(), 2.0 * M_PI);
     double b = femod(mod_b.center().Phi(), 2.0 * M_PI);
     return a < b;
   });
-  for (size_t id = 0; id < modules_.size(); id++) { modules_[id].myid(id + 1); }
+  for (size_t id = 0; id < modules_.size(); id++)
+    modules_[id].setPhiIdentifier(id + 1);
 }
 
 
