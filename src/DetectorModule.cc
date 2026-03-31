@@ -85,16 +85,27 @@ void DetectorModule::build() {
     decorated().store(propertyTree());
     decorated().build();
   }
+
   if (numSensors() > 0) {
-    for (int i = 0; i < numSensors(); i++) {
+    int nSensors = numSensors();
+    if (nSensors > 2) {
+      logERROR("More than 2 sensors found. Only the first 2 will be used.");
+      nSensors = 2;
+      numSensors.scaleByUnit(2.0001 / static_cast<double>(numSensors())); // cheating the read-only property
+    }
+
+    for (int i = 0; i < nSensors; i++) {
       // Build the sensor
       Sensor* s = GeometryFactory::make<Sensor>();
       s->parent(this);
       s->myid(i+1);
       s->store(propertyTree());
-      if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
-      if (numSensors() == 1 || i >= 2) s->innerOuter(SensorPosition::NO);
-      else s->innerOuter(i == 0 ? SensorPosition::LOWER : SensorPosition::UPPER);
+      if (sensorNode.count(i+1) > 0)
+        s->store(sensorNode.at(i+1));
+      if (nSensors == 1)
+        s->innerOuter(SensorPosition::NO);
+      else
+        s->innerOuter(i == 0 ? SensorPosition::LOWER : SensorPosition::UPPER);
       s->build();
 
       // Add it to the module's list of sensors
