@@ -212,8 +212,8 @@ void EndcapDetIdBuilder::visit(Ring& r) {
 }
  
 void EndcapDetIdBuilder::visit(EndcapModule& m) {
-  // Phi identifier (range: 1 to numModules_)
-  uint32_t phiRef_ = m.myid();
+  // Range : 1 to numModules_
+  uint32_t phiRef_ = m.getPhiIdentifier();
 
   // Z+ modules are copied to the Z- side with a +180° shift, Phi ∈ [-pi, pi]
   if (m.side() < 0)
