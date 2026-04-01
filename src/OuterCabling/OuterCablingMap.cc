@@ -418,6 +418,11 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
   // 'stereo' means on the other cabling side, by a rotation of 180° around CMS_Y.
   int stereoPhiSectorRefMarker = -1;
 
+  // Should the bundle be assigned to the lower or upper semi-nonant ?
+  // 'lower' and 'upper' are defined by 'smaller' or 'bigger' Phi,
+  // in the trigonometric sense in the (XY) plane in CMS global frame of reference.
+  bool isLower = false;
+
   // TILTED PART OF TBPS + TB2S
   // Loop on all bundles of a given cabling side (sorted by their BundleIds).
   for (auto& b : bundles) {
@@ -427,43 +432,30 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 
     // Only for Barrel: tilted TBPS, or TB2S.
     if (isBarrel && !isBarrelPSFlatPart) {
-      // Should the bundle be assigned to the lower or upper semi-nonant ?
-      // 'lower' and 'upper' are defined by 'smaller' or 'bigger' Phi, 
-      // in the trigonometric sense in the (XY) plane in CMS global frame of reference.
-      bool isLower = false; // what we want to compute!
-      bool isLowerAssigned = false;
-
       // Identifier of the Phi nonant we are in.
       const int phiSectorRef = myBundle->getCable()->phiSectorRef();
       // In case of a switch to a different Phi nonant, initialize variables.
-      if (phiSectorRef != phiSectorRefMarker) {	
-	phiSectorRefMarker = phiSectorRef;
-	// Starts by assigning to bundle to the lower semi-nonant.
-	isLower = true;
-	isLowerAssigned = true;
-	stereoPhiSectorRefMarker = -1;	
+      if (phiSectorRef != phiSectorRefMarker) {
+        phiSectorRefMarker = phiSectorRef;
+        // Starts by assigning the bundle to the lower semi-nonant
+        isLower = true;
+        stereoPhiSectorRefMarker = -1;
       }
 
       // Get the bundle located on the other cabling side, by a rotation of 180° around CMS_Y.
       const int stereoBundleId = myBundle->stereoBundleId();
       auto found = stereoBundles.find(stereoBundleId);
       if (found != stereoBundles.end()) {
-	const OuterBundle* myStereoBundle = found->second.get();
-	// Get the Phi nonant in which the stereoBundle is located.
-	const int stereoPhiSectorRef = myStereoBundle->getCable()->phiSectorRef();
-	
-	// Decisive point!! 
-	// As soon as a change in the identifier of the stereoBundle Phi nonant is detected,
-	// one assigns the bundle to the upper semi-nonant.
-	if (stereoPhiSectorRefMarker != -1 && stereoPhiSectorRefMarker != stereoPhiSectorRef) {
-		isLower = false;
-		isLowerAssigned = true;
-	}
+        const OuterBundle* myStereoBundle = found->second.get();
+        // Get the Phi nonant in which the stereoBundle is located.
+        const int stereoPhiSectorRef = myStereoBundle->getCable()->phiSectorRef();
 
-	// Lastly, assign the semi-nonant attribution decision to the bundle.
-	
-	if (!isLowerAssigned) logERROR("I did not manage to assign the 'isLower' variable for this cable. I pick a random one just to carry on (false)");
-	myBundle->setIsPowerRoutedToBarrelLowerSemiNonant(isLower);
+        // Decisive point!!
+        // Stereo bundle crossed into a new phi sector
+        // Set isLower to false for the current and all subsequent bundles in this sector
+        if (stereoPhiSectorRefMarker != -1 && stereoPhiSectorRefMarker != stereoPhiSectorRef) {
+          isLower = false;
+        }
 
 	// Keeps track of the Phi nonant in which the stereoBundle is located.
 	stereoPhiSectorRefMarker = stereoPhiSectorRef;
@@ -473,6 +465,9 @@ void OuterCablingMap::routeBarrelBundlesPoweringToSemiNonants(const bool isPosit
 		    + any2str(stereoBundleId)
 		    );
       }
+
+      // Lastly, assign the semi-nonant attribution decision to the bundle (defaults to the last value)
+      myBundle->setIsPowerRoutedToBarrelLowerSemiNonant(isLower);
     }
 
     // NB: All this is possible because the bundles and stereoBundles are sorted by their Ids.
