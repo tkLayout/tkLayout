@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "DetectorModule.hh"
 #include "ModuleCap.hh"
 #include "OuterCabling/OuterBundle.hh"
@@ -340,53 +342,35 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
   }
 
 
-std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) const {
-  if (cachedZError_ != zError) {
-    cachedZError_ = zError;
-    double eta1 = (XYZVector(0., maxR(), maxZ() + zError)).Eta();
-    double eta2 = (XYZVector(0., minR(), minZ() - zError)).Eta();
-    double eta3 = (XYZVector(0., minR(), maxZ() + zError)).Eta();
-    double eta4 = (XYZVector(0., maxR(), minZ() - zError)).Eta();
-    cachedMinMaxEtaWithError_ = std::minmax({eta1, eta2, eta3, eta4});
-    //cachedMinMaxEtaWithError_ = std::make_pair(MIN(eta1, eta2), MAX(eta1, eta2));
-  }
-  return cachedMinMaxEtaWithError_;
-}
-
-
-bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
-
-  double eta       = direction.Eta();
-  double phi       = direction.Phi();
-  double shiftPhi  = phi + 2*M_PI;
-  bool   withinEta = false;
-  bool   withinPhi = false;
-
-  // Eta region covered by module
-  if (eta > minEtaWithError(zError) && eta < maxEtaWithError(zError)) withinEta = true;
+bool DetectorModule::couldHit(double trackPhi, double trackSlope, double zError) const {
+  // Checking that hit within a module region works for barrel-type modules only!!!
+  // ATTENTION: For wedge shaped modules, min, max procedure will not work correctly 
+  // -> return true to avoid errors --> will be implemented in the future
+  if (shape() != ModuleShape::RECTANGULAR) return true;
 
   // Phi region is from <-pi;+3*pi> due to crossline at +pi -> need to check phi & phi+2*pi
-  if ( (phi     >=minPhi() && phi     <=maxPhi()) ||
-       (shiftPhi>=minPhi() && shiftPhi<=maxPhi()) ) withinPhi = true;
+  const double modMinPhi = minPhi();
+  const double modMaxPhi = maxPhi();
 
-  // Checking that hit within a module region works for barrel-type modules only!!!
-  if (this->shape()==ModuleShape::RECTANGULAR) return (withinEta && withinPhi);
-  // ATTENTION: For wedge shaped modules, min, max procedure will not work correctly -> return true to avoid errors --> will be implemented in the future
-  else return true;
+  bool validPhi = (trackPhi >= modMinPhi && trackPhi <= modMaxPhi);
+  if (!validPhi) {
+    const double shiftPhi = trackPhi + 2.0 * M_PI;
+    validPhi = (shiftPhi >= modMinPhi && shiftPhi <= modMaxPhi);
+  }
+  if (!validPhi) return false;
+
+  // Eta covered by module
+  const double zMinErr = minZ() - zError;
+  const double zMaxErr = maxZ() + zError;
+  const double rMin = minR();
+  const double rMax = maxR();
+
+  // Calculate the 4 corner slopes and the track's
+  const auto [minSlope, maxSlope] = std::minmax({ zMinErr / rMin, zMinErr / rMax, 
+                                                  zMaxErr / rMin, zMaxErr / rMax });
+
+  return (trackSlope >= minSlope || trackSlope <= maxSlope);
 }
-
-//bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
-//  double eta = direction.Eta(), phi = direction.Phi();
-//  bool withinEta = eta > minEtaWithError(zError) && eta < maxEtaWithError(zError);
-//  bool withinPhi;
-//  if (minPhi() < 0. && maxPhi() > 0. && maxPhi()-minPhi() > M_PI) // across PI
-//    withinPhi = phi < minPhi() || phi > maxPhi();
-//  else 
-//    withinPhi = phi > minPhi() && phi < maxPhi();
-//  //bool withinPhiSub = phi-2*M_PI > minPhi() && phi-2*M_PI < maxPhi();
-//  //bool withinPhiAdd = phi+2*M_PI > minPhi() && phi+2*M_PI < maxPhi();
-//  return withinEta && (withinPhi /*|| withinPhiSub || withinPhiAdd*/);
-//}
 
 
 /*
