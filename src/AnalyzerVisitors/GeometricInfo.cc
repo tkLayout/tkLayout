@@ -646,7 +646,14 @@ void CMSSWOuterTrackerCablingMapVisitor::visit(const Module& m) {
     //************************************//
 
 void InnerTrackerModulesToDTCsVisitor::preVisit() {
-  output_ << "Module_DetId/i, Module_SubType/I, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I, Is_LongBarrel/O, Power_Chain/I, Power_Chain_Type/C, N_ELinks_Per_Module/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, MFB/I, DTC_Id/I, DTC_CMSSW_Id/U, IsPlusZEnd/O, IsPlusXSide/O" << std::endl;
+  output_ << "Module_DetId/i,Sensor_DetId/i,Module_SubType/I,Module_Section/C," \
+             "Module_Layer/I,Module_Ring/I,Module_phi_deg/D," \
+             "N_Chips_Per_Module/I,N_Channels_Per_Module/I," \
+             "Is_LongBarrel/O,Power_Chain/I,Power_Chain_Type/C," \
+             "N_ELinks_Per_Module/I,LpGBT_Id/C,LpGBT_CMSSW_IdPerDTC/U," \
+             "MFB/I,DTC_Id/I,DTC_CMSSW_Id/U," \
+             "IsPlusZEnd/O,IsPlusXSide/O\n"
+          << std::fixed << std::setprecision(6);
 }
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Barrel& b) {
@@ -667,49 +674,60 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Disk& d) {
 
 void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
   const PowerChain* myPowerChain = m.getPowerChain();
-  if (myPowerChain != nullptr) {
-    std::stringstream moduleInfo;
-    moduleInfo << m.myDetId() << ","
-         << m.moduleSubType() << ","
-	       << sectionName_ << ", "
-	       << layerId_ << ", "
-	       << m.moduleRing() << ", "
-	       << std::fixed << std::setprecision(6)
-	       << m.center().Phi() * 180. / M_PI << ", "
-	       << m.outerSensor().totalROCs() << ", "
-	       << m.totalChannels() << ", ";
+  if (!myPowerChain) return;
 
-    std::stringstream powerChainInfo;
-    powerChainInfo << any2str(myPowerChain->isLongBarrel()) << ","
-		   << myPowerChain->myid() << ","
-		   << any2str(myPowerChain->powerChainType()) << ",";
+  constexpr double RAD_TO_DEG = 180. / M_PI;
+  constexpr char PAD_NO_GBT[]    = ",,,";
+  constexpr char PAD_NO_BUNDLE[] = ",";
+  constexpr char PAD_NO_DTC[]    = ",,,\n";
 
-    const GBT* myGBT = m.getGBT();
-    if (myGBT != nullptr) {
-      std::stringstream GBTInfo;
-      GBTInfo << myGBT->numELinksPerModule() << ","
-	      << any2str(myGBT->GBTId()) << ","
-	      << myGBT->getCMSSWId() << ",";
+  const GBT* myGBT = m.getGBT();
+  const InnerBundle* myBundle = myGBT ? myGBT->getBundle() : nullptr;
+  const InnerDTC* myDTC = myBundle ? myBundle->getDTC() : nullptr;
 
-      const InnerBundle* myBundle = myGBT->getBundle();
-      if (myBundle != nullptr) {
-	std::stringstream bundleInfo;
-	bundleInfo << myBundle->myid() << ",";
-	
-	const InnerDTC* myDTC = myBundle->getDTC();
-	if (myDTC != nullptr) {
-	  std::stringstream DTCInfo;
-	  DTCInfo << myDTC->myid() << ","
-		  << myDTC->getCMSSWId() << ","
-		  << myDTC->isPositiveZEnd() << ","
-		  << myDTC->isPositiveXSide();
-	  output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << DTCInfo.str() << std::endl;
-	}
-	else output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << bundleInfo.str() << std::endl;
-      }
-      else output_ << moduleInfo.str() << powerChainInfo.str() << GBTInfo.str() << std::endl;
+  for (const auto& s : m.sensors()) {
+    // Module info
+    output_ << m.myDetId() << ","
+            << s.myDetId() << ","
+            << m.moduleSubType() << ","
+            << sectionName_ << ","
+            << layerId_ << ","
+            << m.moduleRing() << ","
+            << m.center().Phi() * RAD_TO_DEG << ","
+            << m.outerSensor().totalROCs() << ","
+            << m.totalChannels() << ","
+    // Power chain info
+            << any2str(myPowerChain->isLongBarrel()) << ","
+            << myPowerChain->myid() << ","
+            << any2str(myPowerChain->powerChainType()) << ",";
+
+    // GBT info
+    if (myGBT) {
+      // Separate logic for the L1 TBPX (can we please add an enum for the module subtype?)
+      const int numElinks = (m.moduleSubType() == 1) ? myGBT->numELinksPerModule() / 2
+                                                     : myGBT->numELinksPerModule();
+
+      output_ << numElinks << ","
+              << any2str(myGBT->GBTId()) << ","
+              << myGBT->getCMSSWId()<< ",";
     }
-    else output_ << moduleInfo.str() << powerChainInfo.str() << std::endl;
+    else
+      output_ << PAD_NO_GBT;
+
+    // Bundle info
+    if (myBundle)
+      output_ << myBundle->myid() << ",";
+    else
+      output_ << PAD_NO_BUNDLE;
+
+    // DTC info
+    if (myDTC)
+      output_ << myDTC->myid() << ","
+              << myDTC->getCMSSWId() << ","
+              << any2str(myDTC->isPositiveZEnd()) << ","
+              << any2str(myDTC->isPositiveXSide()) << "\n";
+    else
+      output_ << PAD_NO_DTC;
   }
 }
 
@@ -720,25 +738,30 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
     //*                                   //
     //************************************//
 void CMSSWInnerTrackerCablingMapVisitor::preVisit() {
-  output_ << "Module_DetId/U, GBT_CMSSW_IdPerDTC/U, DTC_CMSSW_Id/U" << std::endl;
+  output_ << "Module_DetId/U,Sensor_DetId/U,GBT_CMSSW_IdPerDTC/U,DTC_CMSSW_Id/U\n";
 }
 
 void CMSSWInnerTrackerCablingMapVisitor::visit(const Module& m) {
-  std::stringstream moduleInfo;
-  moduleInfo << m.myDetId() << ", ";
+  constexpr char PAD_NO_GBT[] = ",";
+  constexpr char PAD_NO_DTC[] = "\n";
 
   const GBT* myGBT = m.getGBT();
-  if (myGBT) {
-    std::stringstream GBTInfo;
-    GBTInfo << myGBT->getCMSSWId() << ",";
+  const InnerDTC* myDTC = m.getInnerDTC();
 
-    const InnerDTC* myDTC = m.getInnerDTC();
-    if (myDTC) {
-      std::stringstream DTCInfo;
-      DTCInfo << myDTC->getCMSSWId();	 
-      output_ << moduleInfo.str() << GBTInfo.str() << DTCInfo.str() << std::endl;
-    }
-    else output_ << moduleInfo.str() << GBTInfo.str() << std::endl;
+  for (const auto& s : m.sensors()) {
+    output_ << m.myDetId() << ","
+            << s.myDetId() << ",";
+
+    // GBT info
+    if (myGBT)
+      output_ << myGBT->getCMSSWId() << ",";
+    else
+      output_ << PAD_NO_GBT;
+
+    // DTC info
+    if (myDTC)
+      output_ << myDTC->getCMSSWId() << "\n";
+    else
+      output_ << PAD_NO_DTC;
   }
-  else output_ << moduleInfo.str() << std::endl;
 }

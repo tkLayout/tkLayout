@@ -3,6 +3,9 @@
  * @brief This class takes care of visualisation for both geometry and analysis results
  */
 
+#include <string>
+#include <sstream>
+
 #include <Vizard.hh>
 #include <Units.hh>
 
@@ -9366,66 +9369,115 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 
   /* Create csv file (Inner Tracker), navigating from DTC hierarchy level to Module hierarchy level.
    */
-  std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
+std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* myInnerCablingMap) {
+  std::ostringstream dtcsToModulesCsv;
 
-    std::stringstream dtcsToModulesCsv;
-    dtcsToModulesCsv << "IsPlusZEnd/O, IsPlusXSide/O, DTC_Id/I, DTC_CMSSW_Id/U, MFB/I, LpGBT_Id/C, LpGBT_CMSSW_IdPerDTC/U, N_ELinks_Per_Module/I, Power_Chain/I, Power_Chain_Type/C, Is_LongBarrel/O, Module_DetId/i, Module_Section/C, Module_Layer/I, Module_Ring/I, Module_phi_deg/D, N_Chips_Per_Module/I, N_Channels_Per_Module/I" << std::endl;
+  // Header line
+  dtcsToModulesCsv << "IsPlusZEnd/O,IsPlusXSide/O,DTC_Id/I,DTC_CMSSW_Id/U,MFB/I,"
+                      "LpGBT_Id/C,LpGBT_CMSSW_IdPerDTC/U,N_ELinks_Per_Module/I,"
+                      "Power_Chain/I,Power_Chain_Type/C,Is_LongBarrel/O,"
+                      "Module_DetId/i,Sensor_DetId/i,Module_Section/C,Module_Layer/I,Module_Ring/I,"
+                      "Module_phi_deg/D,N_Chips_Per_Module/I,N_Channels_Per_Module/I\n"
+                   << std::fixed << std::setprecision(6);
 
-    const std::map<int, std::unique_ptr<InnerDTC> >& myDTCs = myInnerCablingMap->getDTCs();
-    for (const auto& itDTC : myDTCs) {
-      InnerDTC* myDTC = itDTC.second.get();
-      if (myDTC) {
-	std::stringstream DTCInfo;
-	DTCInfo << myDTC->isPositiveZEnd() << ","
-		<< myDTC->isPositiveXSide() << ","
-		<< myDTC->myid() << ","
-		<< myDTC->getCMSSWId() << ",";
+  const auto& myDTCs = myInnerCablingMap->getDTCs();
+  if (myDTCs.empty())
+    return dtcsToModulesCsv.str();
 
-	const std::vector<InnerBundle*>& myBundles = myDTC->bundles();
-	for (const auto& myBundle : myBundles) {
-	  std::stringstream bundleInfo;
-	  bundleInfo << myBundle->myid() << ",";
+  constexpr double RAD_TO_DEG = 180. / M_PI;
+  constexpr char PAD_NO_BUNDLES[]    = ",,,,,,,,,,,,,,\n";
+  constexpr char PAD_NO_GBTS[]       = ",,,,,,,,,,,,,\n";
+  constexpr char PAD_NO_POWERCHAIN[] = ",,,,,,,,,,\n";
+  constexpr char PAD_NO_MODULES[]    = ",,,,,,,\n";
 
-	  const std::vector<GBT*>& myGBTs = myBundle->GBTs();
-	  for (const auto& myGBT : myGBTs) {
-	    std::stringstream GBTInfo;
-	    GBTInfo << any2str(myGBT->GBTId()) << ","
-		    << myGBT->getCMSSWId() << ","
-		    << myGBT->numELinksPerModule() << ",";
+  for (const auto& itDTC : myDTCs) {
+    const InnerDTC* myDTC = itDTC.second.get();
+    if (!myDTC) continue;
 
-	    const PowerChain* myPowerChain = myGBT->getPowerChain();
-	    if (myPowerChain != nullptr) {
-	      std::stringstream powerChainInfo;
-	      powerChainInfo << myPowerChain->myid() << ","
-			     << any2str(myPowerChain->powerChainType()) << ","
-			     << any2str(myPowerChain->isLongBarrel()) << ",";
+    // Cache DTC level Info
+    std::ostringstream dtcStream;
+    dtcStream << myDTC->isPositiveZEnd() << ","
+              << myDTC->isPositiveXSide() << ","
+              << myDTC->myid() << ","
+              << myDTC->getCMSSWId() << ",";
+    const std::string dtcStr = dtcStream.str();
 
-	      const std::vector<Module*>& myModules = myGBT->modules();
-	      for (const auto& module : myModules) {
-		std::stringstream moduleInfo;
-		moduleInfo << module->myDetId() << ", "
-			   << module->uniRef().subdetectorName << ", "
-			   << module->uniRef().layer << ", "
-			   << module->moduleRing() << ", "
-			   << module->center().Phi() * 180. / M_PI << ", "
-			   << module->outerSensor().totalROCs() << ", "
-			   << module->totalChannels();
-		dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << moduleInfo.str() << std::endl;
-	      }
-	      if (myModules.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << powerChainInfo.str() << std::endl;
-	    }
-	    else dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << GBTInfo.str() << std::endl;
-	  }
-	  if (myGBTs.size() == 0) dtcsToModulesCsv << DTCInfo.str() << bundleInfo.str() << std::endl;
-	}
-	if (myBundles.size() == 0) dtcsToModulesCsv << DTCInfo.str() << std::endl;
+    const auto& myBundles = myDTC->bundles();
+    if (myBundles.empty()) {
+      dtcsToModulesCsv << dtcStr << PAD_NO_BUNDLES;
+      continue;
+    }
+
+    for (const auto& myBundle : myBundles) {
+      // Cache Bundle level Info
+      std::ostringstream bundleStream;
+      bundleStream << dtcStr << myBundle->myid() << ",";
+      const std::string bundleStr = bundleStream.str();
+
+      const auto& myGBTs = myBundle->GBTs();
+      if (myGBTs.empty()) {
+        dtcsToModulesCsv << bundleStr << PAD_NO_GBTS;
+        continue;
+      }
+
+      for (const auto& myGBT : myGBTs) {
+        // Cache GBT level Info, exclude N_ELinks since it depends on the module type
+        std::ostringstream gbtStream;
+        gbtStream << bundleStr 
+                  << any2str(myGBT->GBTId()) << ","
+                  << myGBT->getCMSSWId() << ",";
+        const std::string gbtStr = gbtStream.str();
+
+        const PowerChain* myPowerChain = myGBT->getPowerChain();
+        if (!myPowerChain) {
+          dtcsToModulesCsv << gbtStr 
+                           << myGBT->numELinksPerModule() << "," 
+                           << PAD_NO_POWERCHAIN;
+          continue;
+        }
+
+        // Cache PowerChain level Info (decoupled from the GBT cache)
+        std::ostringstream powerStream;
+        powerStream << myPowerChain->myid() << ","
+                    << any2str(myPowerChain->powerChainType()) << ","
+                    << any2str(myPowerChain->isLongBarrel()) << ",";
+        const std::string powerStr = powerStream.str();
+
+        const auto& myModules = myGBT->modules();
+        if (myModules.empty()) {
+          dtcsToModulesCsv << gbtStr 
+                           << myGBT->numELinksPerModule() << "," 
+                           << powerStr 
+                           << PAD_NO_MODULES;
+          continue;
+        }
+
+        // Evaluate module type and format specific data
+        for (const auto& m : myModules) {
+          // Separate logic for the L1 TBPX
+          const int numElinks = (m->moduleSubType() == 1) ? myGBT->numELinksPerModule() / 2 
+                                                          : myGBT->numELinksPerModule();
+
+          for (const auto& s : m->sensors()) {
+            dtcsToModulesCsv << gbtStr 
+                             << numElinks << "," 
+                             << powerStr
+                             << m->myDetId() << ","
+                             << s.myDetId() << ","
+                             << m->uniRef().subdetectorName << ","
+                             << m->uniRef().layer << ","
+                             << m->moduleRing() << ","
+                             << m->center().Phi() * RAD_TO_DEG << ","
+                             << m->outerSensor().totalROCs() << ","
+                             << m->totalChannels() << "\n";
+          }
+        }
       }
     }
-    if (myDTCs.size() == 0) dtcsToModulesCsv << std::endl;
-
-    return dtcsToModulesCsv.str();
   }
 
+  return dtcsToModulesCsv.str();
+}
 
   /* Create csv file (Inner Tracker), summary on both cabling sides. Info needed by CMSSW: Modules DetIds to DTCIds.
    */
