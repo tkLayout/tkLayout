@@ -3347,10 +3347,14 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
       //static std::ofstream ofs("hits.txt");
-      for (auto& m : moduleV) {
+      const double track_phi = direction.Phi();
+      const double track_slope = direction.Z() / direction.R();
+      const double zError = SimParms::getInstance().lumiRegZError() * BoundaryEtaSafetyMargin;
+
+      for (const auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
-        if (m->couldHit(direction, SimParms::getInstance().lumiRegZError()*BoundaryEtaSafetyMargin)) {
+        if (m->couldHit(track_phi, track_slope, zError)) {
           auto h = m->checkTrackHits(origin, direction); 
           if (h.second != HitType::NONE) {
             result.push_back(std::make_pair(m,h.second));

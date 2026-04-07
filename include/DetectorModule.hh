@@ -362,9 +362,6 @@ public:
   double maxEta() const { return MAX(basePoly().getVertex(0).Eta(), basePoly().getVertex(2).Eta()); }
   double minEta() const { return MIN(basePoly().getVertex(0).Eta(), basePoly().getVertex(2).Eta()); }
   double etaAperture() const { return maxEta() - minEta(); }
-  double maxEtaWithError(double zError) const { return minMaxEtaWithError(zError).second; }
-  double minEtaWithError(double zError) const { return minMaxEtaWithError(zError).first; }
-  std::pair<double, double> minMaxEtaWithError(double zError) const;
 
   double maxTheta() const { return MAX(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
   double minTheta() const { return MIN(basePoly().getVertex(0).Theta(), basePoly().getVertex(2).Theta()); }
@@ -424,7 +421,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   inline bool is3DPixelModule() const { return (isPixelModule() && moduleType().find(insur::type_3D) != std::string::npos); }
   inline bool isTimingModule() const { return (moduleType().find(insur::type_timing) != std::string::npos); }
 
-  bool couldHit(const XYZVector& direction, double zError) const;
+  bool couldHit(double trackPhi, double trackSlope, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
@@ -479,8 +476,6 @@ protected:
   Sensors sensors_;
   std::string subdetectorName_;
   int16_t subdetectorId_;
-  mutable double cachedZError_ = -1.;
-  mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
   double tiltAngle_ = 0.;
   double yawAngle_ = 0.;
