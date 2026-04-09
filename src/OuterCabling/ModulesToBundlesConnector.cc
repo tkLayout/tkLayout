@@ -50,9 +50,11 @@ void ModulesToBundlesConnector::visit(BarrelModule& m) {
       isTilted = false;
       isExtraFlatPart = false;
 
-      // For layer 3, need to add a second bundle for flat part
-      if (isPositiveCablingSide && (totalNumFlatRings_ > outer_cabling_maxNumModulesPerBundle) && !side_) isExtraFlatPart = true;
-      if (!isPositiveCablingSide && (totalNumFlatRings_ > outer_cabling_maxNumModulesPerBundle) && side_) isExtraFlatPart = true;
+      // Split rings exceeding max module/bundle capacity into two bundles:
+      // Outward-facing (odd) to main bundle, inward-facing (even) to extra bundle.
+      if (totalNumFlatRings_ > outer_cabling_maxNumModulesPerBundle) {
+        isExtraFlatPart = m.moduleRing() % 2 == 1;
+      }
     }
 
     // TILTED PART
