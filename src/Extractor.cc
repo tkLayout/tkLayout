@@ -513,6 +513,11 @@ namespace insur {
     //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
+
       std::set<int> ridx;
       double lrmin = std::numeric_limits<double>::max();
       double lrmax = 0;
@@ -2386,8 +2391,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
@@ -3111,8 +3117,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
