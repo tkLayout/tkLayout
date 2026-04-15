@@ -227,7 +227,7 @@ namespace insur {
    * @param elems A reference to the collection of elementary material information; used as output
    */
   void Extractor::analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites) {
-    
+        
     /*
     // PREVIOUS CODE
     for (unsigned int i = 0; i < mattab.rowCount(); i++) {
@@ -432,6 +432,11 @@ namespace insur {
     //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
+
       std::set<int> ridx;
       double lrmin = std::numeric_limits<double>::max();
       double lrmax = 0;
@@ -2198,8 +2203,10 @@ namespace insur {
 
     // LOOP ON DISKS
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
-
-      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
    
 	std::set<int> ringsIndexes; // VERY UGLY !! TO DO : IMPLEMENT ringsIndexes() IN CLASS DISK
 	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -2257,8 +2264,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
@@ -2811,7 +2819,6 @@ namespace insur {
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
         //dspec.partextras.push_back(logic.extra);
 	discNumber++;
-      }
       layer++;
     }
     if (!dspec.partselectors.empty()) t.push_back(dspec);
@@ -2912,8 +2919,10 @@ namespace insur {
 
     // LOOP ON DISKS
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
-
-      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
    
 	std::set<int> ringsIndexes; // VERY UGLY !! TO DO : IMPLEMENT ringsIndexes() IN CLASS DISK
 	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -2982,8 +2991,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
@@ -3501,7 +3511,6 @@ namespace insur {
         dspec.moduletypes.push_back(minfo_zero);
         dspec.partextras.push_back(logic.extra);
 	discNumber++;
-      }
       layer++;
     }
     if (!dspec.partselectors.empty()) t.push_back(dspec);
@@ -4837,6 +4846,12 @@ namespace insur {
     // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
     XYZVector mx = (0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center).Unit() ;
     XYZVector my = (0.5*( module.basePoly().getVertex(1) + module.basePoly().getVertex(2) ) - center).Unit() ;
+    /*if(module.numSensors()==2){
+        v[0] = module.center() - expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
+        v[1] = module.center() - expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
+        v[2] = module.center() + expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
+        v[3] = module.center() + expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
+    }*/
 
     // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
@@ -4845,12 +4860,6 @@ namespace insur {
     v[1] = module.center() - expandedModWidth/2. * mx + expandedModLength/2. * my;
     v[2] = module.center() + expandedModWidth/2. * mx + expandedModLength/2. * my;
     v[3] = module.center() + expandedModWidth/2. * mx - expandedModLength/2. * my;
-    /*if(module.numSensors()==2){
-        v[0] = module.center() - expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
-        v[1] = module.center() - expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
-        v[2] = module.center() + expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
-        v[3] = module.center() + expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
-    }*/
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface
