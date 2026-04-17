@@ -156,23 +156,6 @@ namespace insur {
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 #endif
 
-    // EndcapRot is not needed any more
-    /*
-       rot.name = xml_endcap_rot;
-       rot.thetax = 90.0;
-       rot.phix = 90.0;
-       rot.thetay = 90.0;
-       rot.phiy = 180.0;
-       rot.thetaz = 0.0;
-       rot.phiz = 0.0;
-       r.push_back(rot);
-       */
-
-    // These seem not to be needed here
-    //LogicalInfo logic;
-    //AlgoInfo alg;
-    //SpecParInfo spec;
-
     // Define top-level barrel and endcap volume containers (polycone)
     // This just fill the polycone profiles of the two volumes
     ShapeInfo shape;
@@ -227,25 +210,6 @@ namespace insur {
    * @param elems A reference to the collection of elementary material information; used as output
    */
   void Extractor::analyseElements(std::vector<Element>& elems, std::vector<Composite>& allComposites) {
-    
-    /*
-    // PREVIOUS CODE
-    for (unsigned int i = 0; i < mattab.rowCount(); i++) {
-    Element e;
-    MaterialRow& r = mattab.getMaterial(i);
-    e.tag = r.tag;
-    e.density = r.density;
-    std::pair<double, int> AZ = getAZ(r.rlength, r.ilength);
-    e.atomic_weight = AZ.first;
-    e.atomic_number = AZ.second;
-    // Z and A are calculated from radiation length and nuclear interaction lengths.
-    // THIS IS BECAUSE RADIATION LENGTH AND NUCLEAR INTERACTION LENGTH CANNOT BE TRANSMITED DIRECTLY TO CMSSW.
-    // Hence, Z and A (and density) only are transmitted to CMSSW.
-    // On CMSSW side, radiation lengths and nuclear interaction lengths will be recomputed from this Z, A, and density info.
-    elems.push_back(e);
-    }
-    */
-
     const MaterialsTable& myTable = MaterialsTable::instance();
 
     // FROM TABLE: CHEMICAL ELEMENTS
@@ -427,11 +391,13 @@ namespace insur {
     auto el = lagg.getEndcapLayers();
     int layer = 1;
     int n_of_layers = el->size();
-
-    //lagg.postVisit();   
-    //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
+
       std::set<int> ridx;
       double lrmin = std::numeric_limits<double>::max();
       double lrmax = 0;
@@ -2198,8 +2164,10 @@ namespace insur {
 
     // LOOP ON DISKS
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
-
-      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
    
 	std::set<int> ringsIndexes; // VERY UGLY !! TO DO : IMPLEMENT ringsIndexes() IN CLASS DISK
 	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -2257,8 +2225,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
@@ -2361,11 +2330,6 @@ namespace insur {
 	      // module box
 	      shape.name_tag = mname.str();
 	      shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
-	      //shape.dx = iiter->getModule().minWidth() / 2.0;
-	      //shape.dxx = iiter->getModule().maxWidth() / 2.0;
-	      //shape.dy = iiter->getModule().length() / 2.0;
-	      //shape.dyy = iiter->getModule().length() / 2.0;
-	      //shape.dz = iiter->getModule().thickness() / 2.0;    
 	      if (shape.type==bx) {
 		shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
 		shape.dy = modcomplex.getExpandedModuleLength()/2.0;
@@ -2389,12 +2353,8 @@ namespace insur {
 	      logic.name_tag = mname.str();
 	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 
-	      //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
-	      // module composite material
-	      //matname << xml_base_actcomp << "D" << discNumber << "R" << modRing;
-	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
 	    //Topology
 	    sspec.partselectors.push_back(mname.str());
@@ -2802,16 +2762,7 @@ namespace insur {
         dspec.partselectors.push_back(logic.name_tag);
         dspec.moduletypes.push_back(minfo_zero);
         dspec.partextras.push_back(logic.extra);
-        //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
-        //   logic.extra = xml_minus;
-        //   l.push_back(logic);
-        //   pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
-        //   pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
-        //   p.push_back(pos);
-        //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
-        //dspec.partextras.push_back(logic.extra);
 	discNumber++;
-      }
       layer++;
     }
     if (!dspec.partselectors.empty()) t.push_back(dspec);
@@ -2912,8 +2863,10 @@ namespace insur {
 
     // LOOP ON DISKS
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
-
-      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
    
 	std::set<int> ringsIndexes; // VERY UGLY !! TO DO : IMPLEMENT ringsIndexes() IN CLASS DISK
 	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -2982,8 +2935,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
@@ -3501,7 +3455,6 @@ namespace insur {
         dspec.moduletypes.push_back(minfo_zero);
         dspec.partextras.push_back(logic.extra);
 	discNumber++;
-      }
       layer++;
     }
     if (!dspec.partselectors.empty()) t.push_back(dspec);
@@ -3547,22 +3500,13 @@ namespace insur {
     double serviceBarrelRMax = 0;
     double serviceEndcapsRMin = std::numeric_limits<double>::max();
     double serviceEndcapsRMax = 0;
-#if 1
     int  previousInnerRadius = -1;
-#endif
     for (iter = bs.begin(); iter != guard; iter++) {
-#if 1
       if ( (int)(iter->getZOffset()) == 0 ) {
         if ( previousInnerRadius == (int)(iter->getInnerRadius()) ) continue;
         else previousInnerRadius = (int)(iter->getInnerRadius());
       }
-#endif
       std::ostringstream matname, shapename;
-#if 0
-      matname << xml_base_serfcomp << "R" << (int)(iter->getInnerRadius()) << "dZ" << (int)(iter->getZLength());
-      shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZOffset());
-      if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-#else
       matname << xml_base_serfcomp << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
@@ -3695,13 +3639,7 @@ namespace insur {
           logWARNING( msg.str() ); 
         }
       }
-#endif
     }
-    // DEBUG EXTREMA
-    /*std::cout << "serviceBarrelRMin = " << serviceBarrelRMin << std::endl;
-    std::cout << "serviceBarrelRMax = " << serviceBarrelRMax << std::endl;
-    std::cout << "serviceEndcapsRMin = " << serviceEndcapsRMin << std::endl;
-    std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;*/
   }
     
 
@@ -3752,11 +3690,7 @@ namespace insur {
     for (iter = sp.begin(); iter != guard; iter++) {
       std::ostringstream matname, shapename;
       matname << xml_base_lazycomp << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
-#if 0
-      shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
-#else
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
-#endif
 
    
       // Test whether the support is the OTST.
@@ -3909,11 +3843,6 @@ namespace insur {
       }
 
     }
-    // DEBUG EXTREMA
-    /*std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
-    std::cout << "supportBarrelRMax = " << supportBarrelRMax << std::endl;
-    std::cout << "supportEndcapsRMin = " << supportEndcapsRMin << std::endl;
-    std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;*/
   }
 
 
@@ -4845,12 +4774,6 @@ namespace insur {
     v[1] = module.center() - expandedModWidth/2. * mx + expandedModLength/2. * my;
     v[2] = module.center() + expandedModWidth/2. * mx + expandedModLength/2. * my;
     v[3] = module.center() + expandedModWidth/2. * mx - expandedModLength/2. * my;
-    /*if(module.numSensors()==2){
-        v[0] = module.center() - expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
-        v[1] = module.center() - expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
-        v[2] = module.center() + expandedModWidth/2. * mx + expandedModLengthPixDoubleSens/2. * my;
-        v[3] = module.center() + expandedModWidth/2. * mx - expandedModLengthPixDoubleSens/2. * my;
-    }*/
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface
