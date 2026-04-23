@@ -35,22 +35,21 @@ private:
 
   // CONNECT MODULES TO GBTS
   const std::pair<int, double> computeNumGBTsInPowerChain(const int numELinksPerModule, const int numModulesInPowerChain, const bool isBarrel);
-  const int computeGBTIndexInPowerChain(const bool isBarrel, const int numModulesInPowerChain, const int ringRef, const int phiRefInPowerChain, const double maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
-  const int computeGBTIndexInSpecialPowerChain(const int ringRef, const int numELinks, const int phiRefInPowerChain, const int phiRef) const;
-  const std::string computeGBTId(const int powerChainId, const int myGBTIndex) const;
+  int computeGBTIndexInPowerChain(const bool isBarrel, const int numModulesInPowerChain, const int ringRef, const int phiRefInPowerChain, const double maxNumModulesPerGBTInPowerChain, const int numGBTsInPowerChain) const;
+  int computeGBTIndexInSpecialPowerChain(const int ringRef, const int numELinks, const int phiRefInPowerChain, const int phiRef) const;
   void createAndStoreGBTs(PowerChain* myPowerChain, Module* m, const std::string myGBTId, const int myGBTIndex, const int numELinksPerModule, std::map<std::string, std::unique_ptr<GBT> >& GBTs);
   void connectOneModuleToOneGBT(Module* m, GBT* GBT) const;
   void checkModulesToGBTsCabling(const std::map<std::string, std::unique_ptr<GBT> >& GBTs) const;
 
   // CONNECT GBTs TO BUNDLES
-  const int computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const bool isAtSmallerAbsZDeeInDoubleDisk) const;
-  const int computeBundleId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex) const;
+  int computeBundleIndex(const std::string subDetectorName, const int layerNumber, const int powerChainPhiRef, const bool isAtSmallerAbsZDeeInDoubleDisk) const;
+  int computeBundleId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex) const;
   void createAndStoreBundles(GBT* myGBT, std::map<int, std::unique_ptr<InnerBundle> >& bundles, const int bundleId, const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber, const int myBundleIndex);
   void connectOneGBTToOneBundle(GBT* myGBT, InnerBundle* myBundle) const;
   void checkGBTsToBundlesCabling(const std::map<int, std::unique_ptr<InnerBundle> >& bundles) const;
 
   // CONNECT BUNDLES TO DTCS
-  const int computeDTCId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber) const;
+  int computeDTCId(const bool isPositiveZEnd, const bool isPositiveXSide, const std::string subDetectorName, const int layerDiskNumber) const;
   void createAndStoreDTCs(InnerBundle* myBundle, std::map<int, std::unique_ptr<InnerDTC> >& DTCs, const int DTCId, const bool isPositiveZEnd, const bool isPositiveXSide);
   void connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const;
   void computeCMSSWIds(std::map<int, std::unique_ptr<InnerDTC> >& DTCs);
