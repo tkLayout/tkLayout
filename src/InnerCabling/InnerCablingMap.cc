@@ -79,7 +79,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
         for (auto& m: myPowerChain->modules()) {
             int ringRef = m->uniRef().ring;
             int phiRefInPowerChain = m->getPhiRefInPowerChain();
-            int numELinks = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, ringRef); 
+            std::size_t numELinks = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, ringRef); 
             int gbtIndex = computeGBTIndexInSpecialPowerChain(ringRef, numELinks, phiRefInPowerChain, phiRef);
             const std::string myGBTId = computeGBTId(powerChainId, gbtIndex);
             createAndStoreGBTs(myPowerChain, m, myGBTId, gbtIndex, numELinks, GBTs);
@@ -307,13 +307,11 @@ const int InnerCablingMap::computeBundleIndex(const std::string subDetectorName,
 
   if (subDetectorName == inner_cabling_tbpx) {
     int maxNumPowerChainsPerBundleBarrelLayer = 0;
-    if (layerNumber == 1) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer1;
-    else if (layerNumber == 2) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer2;
-    else if (layerNumber == 3) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer3;
-    else if (layerNumber == 4) maxNumPowerChainsPerBundleBarrelLayer = maxNumPowerChainsPerBundleBarrelLayer4;
-    else logERROR("Did not find supported layer number.");
-
-    if (maxNumPowerChainsPerBundleBarrelLayer == 0) logERROR(any2str("Found maxNumPowerChainsPerBundleBarrelLayer == 0."));
+    auto it = maxPowerChainsPerBundleTBPX.find(layerNumber);
+    if (it != maxPowerChainsPerBundleTBPX.end())
+      maxNumPowerChainsPerBundleBarrelLayer = it->second;
+    else
+      logERROR(any2str("Found maxNumPowerChainsPerBundleBarrelLayer == 0."));
 
     const double myBundleIndexExact = static_cast<double>(powerChainPhiRef) / maxNumPowerChainsPerBundleBarrelLayer;
     myBundleIndex = (fabs(myBundleIndexExact - round(myBundleIndexExact)) < inner_cabling_roundingTolerance ? 

@@ -1,5 +1,8 @@
 #include "InnerCabling/inner_cabling_functions.hh"
 
+#include <string>
+#include <cstddef>
+
 
 namespace inner_cabling_functions {
 
@@ -149,56 +152,21 @@ namespace inner_cabling_functions {
   /*
    * Compute the number of ELinks per module, depending on the module location.
    */
-  const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber) {   
-    int numELinksPerModule = 0;
-
-    // tbpx
-    if (subDetectorName == inner_cabling_tbpx) {
-      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer1;
-      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer2;
-      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer3;
-      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleBarrelLayer4;
-      else { 
-	logERROR(any2str("Found layer number ") + any2str(layerOrRingNumber)
-		 + any2str(" in ") + any2str(inner_cabling_tbpx)
-		 + any2str(". This is not supported.")
-		 );
-      }
-    }
-    // tfpx
-    else if (subDetectorName == inner_cabling_tfpx) {
-      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing1;
-      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing2;
-      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing3;
-      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleForwardRing4;
-      else { 
-	logERROR(any2str("Found ring number ") + any2str(layerOrRingNumber)
-		 + any2str(" in ") + any2str(inner_cabling_tfpx)
-		 + any2str(". This is not supported.")
-		 );
-      }
-    }
-    // tepx
-    else if (subDetectorName == inner_cabling_tepx) {
-      if (layerOrRingNumber == 1) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing1;
-      else if (layerOrRingNumber == 2) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing2;
-      else if (layerOrRingNumber == 3) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing3;
-      else if (layerOrRingNumber == 4) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing4;
-      else if (layerOrRingNumber == 5) numELinksPerModule = inner_cabling_numELinksPerModuleEndcapRing5;
-      else { 
-	logERROR(any2str("Found ring number ") + any2str(layerOrRingNumber)
-		 + any2str(" in ") + any2str(inner_cabling_tepx)
-		 + any2str(". This is not supported.")
-		 );
-      }
-    }
-    // other
-    else { 
-      logERROR(any2str("Unknown subDetector ") + any2str(subDetectorName)
-	       );
+std::size_t computeNumELinksPerModule(const std::string& subDetectorName, const std::size_t layerOrRingNumber) {
+    const auto it = inner_cabling_numELinksPerModule.find(subDetectorName);
+    if (it == inner_cabling_numELinksPerModule.end()) {
+      logERROR(any2str("Unknown subDetector name : ") + any2str(subDetectorName));
+      return 0; // Fallback
     }
 
-    return numELinksPerModule;
+    const auto it2 = it->second.find(layerOrRingNumber);
+    if (it2 == it->second.end()) {
+      logERROR(any2str("Found layer or ring number ") + any2str(layerOrRingNumber)
+          + any2str(" in ") + any2str(subDetectorName) + any2str(". This is not supported."));
+      return 0; // Fallback
+    }
+
+    return it2->second;
   }
 
 } // namespace

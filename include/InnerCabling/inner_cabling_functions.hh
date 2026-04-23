@@ -6,6 +6,7 @@
 #include "InnerCabling/inner_cabling_constants.hh"
 #include "MessageLogger.hh"
 
+#include <cstddef>
 
 namespace inner_cabling_functions {
 
@@ -25,7 +26,7 @@ namespace inner_cabling_functions {
   const bool isSmallerAbsZHalfRing(const int halfRingIndex);
 
   // compute number of ELinks per module
-  const int computeNumELinksPerModule(const std::string subDetectorName, const int layerOrRingNumber);
+  std::size_t computeNumELinksPerModule(const std::string& subDetectorName, const std::size_t layerOrRingNumber);
 }
 
 
