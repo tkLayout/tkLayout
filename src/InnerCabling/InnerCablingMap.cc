@@ -84,9 +84,6 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
      } else {
         // Loops on all modules of the power chain
         for (auto& m : myPowerChain->modules()) {
-          // SET NUMBER OF ELINKS PER MODULE
-          m->setNumELinks(numELinksPerModule);
-
           // COLLECT MODULE INFORMATION NEEDED TO BUILD GBT
           const int ringRef = (myPowerChain->isLongBarrel() ? m->uniRef().ring - 1
                                                             : m->uniRef().ring - 2);
@@ -209,25 +206,16 @@ int InnerCablingMap::computeGBTIndexInSpecialPowerChain(const int ringRef, const
 /* Create a GBT, if does not exist yet.
  * Store it in the GBTs container.
  */
-void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module* m, const std::string myGBTId, const int myGBTIndexInPowerChain, const int numELinksPerModule, std::map<std::string, std::unique_ptr<GBT> >& GBTs) {
-
+void InnerCablingMap::createAndStoreGBTs(PowerChain* myPowerChain, Module* m, const std::string myGBTId, const int myGBTIndexInPowerChain, const int numELinks, std::map<std::string, std::unique_ptr<GBT> >& GBTs) {
   auto found = GBTs.find(myGBTId);
   if (found == GBTs.end()) {
-    std::unique_ptr<GBT> myGBT(new GBT(myPowerChain, myGBTId, myGBTIndexInPowerChain, numELinksPerModule));
-    connectOneModuleToOneGBT(m, myGBT.get());
+    std::unique_ptr<GBT> myGBT(new GBT(myPowerChain, myGBTId, myGBTIndexInPowerChain));
+    myGBT->addModule(m, numELinks);
     GBTs.insert(std::make_pair(myGBTId, std::move(myGBT)));  
   }
   else {
-    connectOneModuleToOneGBT(m, found->second.get());
+    found->second->addModule(m, numELinks);
   }
-}
-
-
-/* Connect module to GBT and vice-versa.
- */
-void InnerCablingMap::connectOneModuleToOneGBT(Module* m, GBT* myGBT) const {
-  myGBT->addModule(m);
-  m->setGBT(myGBT);
 }
 
 
@@ -332,22 +320,13 @@ void InnerCablingMap::createAndStoreBundles(GBT* myGBT, std::map<int, std::uniqu
   auto found = bundles.find(bundleId);
   if (found == bundles.end()) {
     std::unique_ptr<InnerBundle> myBundle(new InnerBundle(bundleId, isPositiveZEnd, isPositiveXSide, subDetectorName, layerDiskNumber, myBundleIndex));
-    connectOneGBTToOneBundle(myGBT, myBundle.get());
+    myBundle->addGBT(myGBT);
     bundles.insert(std::make_pair(bundleId, std::move(myBundle)));  
   }
   else {
-    connectOneGBTToOneBundle(myGBT, found->second.get());
+    found->second->addGBT(myGBT);
   }
 }
-
-
-/* Connect GBT to Bundle and vice-versa.
- */
-void InnerCablingMap::connectOneGBTToOneBundle(GBT* myGBT, InnerBundle* myBundle) const {
-  myBundle->addGBT(myGBT);
-  myGBT->setBundle(myBundle);
-}
-
 
 /* Check GBTs-Bundle connections.
  */
@@ -439,20 +418,12 @@ void InnerCablingMap::createAndStoreDTCs(InnerBundle* myBundle, std::map<int, st
   auto found = DTCs.find(DTCId);
   if (found == DTCs.end()) {
     std::unique_ptr<InnerDTC> myDTC(new InnerDTC(DTCId, isPositiveZEnd, isPositiveXSide));
-    connectOneBundleToOneDTC(myBundle, myDTC.get());
+    myDTC->addBundle(myBundle);
     DTCs.insert(std::make_pair(DTCId, std::move(myDTC)));  
   }
   else {
-    connectOneBundleToOneDTC(myBundle, found->second.get());
+    found->second->addBundle(myBundle);
   }
-}
-
-
-/* Connect Bundle to DTC and vice-versa.
- */
-void InnerCablingMap::connectOneBundleToOneDTC(InnerBundle* myBundle, InnerDTC* myDTC) const {
-  myDTC->addBundle(myBundle);
-  myBundle->setDTC(myDTC);
 }
 
 

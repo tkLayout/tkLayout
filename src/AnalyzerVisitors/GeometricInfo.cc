@@ -650,7 +650,7 @@ void InnerTrackerModulesToDTCsVisitor::preVisit() {
              "Module_Layer/I,Module_Ring/I,Module_phi_deg/D," \
              "N_Chips_Per_Module/I,N_Channels_Per_Module/I," \
              "Is_LongBarrel/O,Power_Chain/I,Power_Chain_Type/C," \
-             "N_ELinks_Per_Module/I,LpGBT_Id/C,LpGBT_CMSSW_IdPerDTC/U," \
+             "N_ELinks/I,LpGBT_Id/C,LpGBT_CMSSW_IdPerDTC/U," \
              "MFB/I,DTC_Id/I,DTC_CMSSW_Id/U," \
              "IsPlusZEnd/O,IsPlusXSide/O\n"
           << std::fixed << std::setprecision(6);
@@ -703,11 +703,11 @@ void InnerTrackerModulesToDTCsVisitor::visit(const Module& m) {
 
     // GBT info
     if (myGBT) {
-      // Separate logic for the L1 TBPX (can we please add an enum for the module subtype?)
-      const int numElinks = (m.moduleSubType() == 1) ? myGBT->numELinksPerModule() / 2
-                                                     : myGBT->numELinksPerModule();
+      // Generalization logic for the TBPX-L1
+      const int numElinksPerModule = m.numELinks();
+      const int numElinksPerDetId = numElinksPerModule / m.numSensors();
 
-      output_ << numElinks << ","
+      output_ << numElinksPerDetId << ","
               << any2str(myGBT->GBTId()) << ","
               << myGBT->getCMSSWId()<< ",";
     }
