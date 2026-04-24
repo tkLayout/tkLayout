@@ -16,15 +16,7 @@
 #include "ModuleCap.hh"
 #include "SimParms.hh"
 
-//using namespace ROOT::Math;
 using namespace std;
-
-// bool Track::debugRemoval = false; // debug
-//#ifdef HIT_DEBUG_RZ
-//bool Track::debugRZCovarianceMatrix = false;  // debug
-//bool Track::debugRZCorrelationMatrix = false;  // debug
-//bool Track::debugRZErrorPropagation = false;  // debug
-//#endif
 
 /**
  * This is a comparator for two Hit objects based on smaller radius.
@@ -382,18 +374,11 @@ double Hit::getResolutionZ(const double trackRadius) const {
  * @return true if the module is in outer endcap and square
  */
 bool Hit::isSquareEndcap() {
-
-  //std::cout << "Hit::isSquareEndcap() "; //debug
-
   if (m_hitModule) {
-    //std::cout << " hitModule_!= NULL "; //debug
     if (m_hitModule->subdet() == ENDCAP && m_hitModule->shape() == RECTANGULAR) {
-      //std::cout << " getSubdetectorType()==Endcap "; //debug
-       //std::cout << " getShape()==Rectangular "; //debug
        return true;
     }
   }
-  //std::cout << std::endl; // debug
   return false;
 }
 
@@ -410,20 +395,15 @@ bool Hit::isStub() const
 double Hit::getD() {
 
   double result = 0;
-  //std::cout << "Hit::getD() "; //debug
   if (m_hitModule) {
-    //std::cout << " hitModule_!= NULL "; //debug
     try {
 
       const EndcapModule* myECModule = dynamic_cast<const EndcapModule*>(m_hitModule);//->as<EndcapModule>();
       if (myECModule) {
-        //std::cout << " myECModule!= NULL "; //debug
         result = (myECModule->minWidth() + myECModule->maxWidth()) / 2. / 2.;
-        //std::cout << " result = " << result; //debug
       }
     }
     catch (exception& e) {}
   }
-  //std::cout << std::endl; // debug
   return result;
 }

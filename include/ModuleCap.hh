@@ -14,8 +14,6 @@
 #define	_MODULECAP_H
 
 #include <string>
-
-//#include <module.hh>
 #include "Module.hh"
 #include <MaterialProperties.hh>
 #include <global_constants.hh>

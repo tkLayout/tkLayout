@@ -84,12 +84,9 @@ namespace insur {
     bool buildTracker();
     bool buildOuterCablingMap(const bool outerCablingOption);
     bool buildInnerCablingMap(const bool innerCablingOption);
-    //bool buildTrackerSystem();
-    //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
     bool buildMaterials(bool verbose = false);
     bool createMaterialBudget(bool verbose = false);
-    //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
     bool translateFullSystemToXML(std::string xmlout = "");
     bool webOutput = false;
@@ -118,12 +115,10 @@ namespace insur {
 
     void simulateTracks(const po::variables_map& varmap, int seed);
     void setCommandLine(int argc, char* argv[]);
-    //void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
     void dumpJson(std::string jsonout);
     bool prepareTargetDirectory();
   private:
-    //std::string g;
     Tracker* tr;
     InactiveSurfaces* is;
     MaterialBudget* mb;
@@ -145,7 +140,6 @@ namespace insur {
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
     Squid(const Squid& s);
-    Squid& operator=(const Squid& s);
     void resetVizard();
     std::string baseName_;
     std::string htmlDir_;

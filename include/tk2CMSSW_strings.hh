@@ -415,8 +415,6 @@ namespace insur {
 	topo_bmodulecomb_value(!isPixelTracker ? xml_OT_topo_bmodule_value : xml_PX_topo_bmodulecomb_value),
 	topo_endcaps_name(!isPixelTracker ? xml_OT_topo_endcaps_name : xml_PX_topo_endcaps_name),
 	topo_endcaps_value(!isPixelTracker ? xml_OT_topo_endcaps_value : xml_PX_topo_endcaps_value),
-	//topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
-	//topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
 	topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : hasSubDisk ? xml_PX_topo_disc_case_sd_name : xml_PX_topo_disc_name),
 	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : hasSubDisk ? xml_PX_topo_disc_case_sd_value : xml_PX_topo_disc_value),
 	topo_subdisc_name("PixelEndcapSubDisk"),
@@ -469,14 +467,6 @@ namespace insur {
       const std::string reco_layer_name;
       const std::string reco_disc_name;
     };
-
-    /*class TrackerXmlTagsClass {
-      private :   
-      XmlTags tags_;
-      public :      
-      XmlTags getTags() { return tags_; }    
-      };*/
-
 
 }
 #endif /* _TK2CMSSW_STRINGS_H */

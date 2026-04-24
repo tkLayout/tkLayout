@@ -51,20 +51,15 @@ namespace insur {
       void visit(Layer& l) { barrelLayers_.push_back(&l); }
       void visit(Disk& d) { endcapLayers_.push_back(&d); }
       void postVisit() {
-        //std::cout << "I am post-visiting" << std::endl;
         std::sort (barrelLayers_.begin(), barrelLayers_.end(), [ ]( Layer* lhs, Layer* rhs )
                    {
                       return lhs->minR() < rhs->minR();
                    });
-        //for (auto it : barrelLayers_ ) {
-        //  std::cout << "HERE layer " << it->minR() << std::endl;
-        //}
       }
       std::vector<Layer*>* getBarrelLayers() { return &barrelLayers_; }
       std::vector<Disk*>* getEndcapLayers() { return &endcapLayers_; }
       std::vector<std::vector<ModuleCap> >& getBarrelCap() {
         if (layerCap_.size()) return layerCap_;
-        //std:cout << "Computing my layerCap_ for the first time" << std::endl;
         for (auto it : barrelLayers_ ) {
           class ModuleVisitor : public GeometryVisitor {
           public:
@@ -74,12 +69,9 @@ namespace insur {
           };
           ModuleVisitor mv;
           it->accept(mv);
-          //std::cout << "Added a layer with " << mv.myLayerModuleCaps_->size() << " modules" << std::endl;
           layerCap_.push_back(*mv.myLayerModuleCaps_);
-          //std::cout << "layerCap_.size()=" << layerCap_.size() << std::endl;
           auto lastLayerCap = layerCap_.end();
           lastLayerCap--;
-          //std::cout << "last layer cap has " << lastLayerCap->size() << " modules" << std::endl;
         }
         return layerCap_;
       }
@@ -313,7 +305,6 @@ namespace insur {
       };
 
 
-      ModuleCap&           modulecap;
       Module&              module;
       std::vector<Volume*> volumes;
       std::string          moduleId;
@@ -334,7 +325,6 @@ namespace insur {
       const double         centralDeadAreaLength;
       const double         chipNegativeXExtraWidth;
       const double         chipPositiveXExtraWidth;
-            double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
             double         hybridLeftAndRightVolume_mm3;

@@ -217,17 +217,6 @@ public:
   //! Get a vector of pairs: Detector module & hit type for Trigger hits
   std::vector<std::pair<const DetectorModule*, HitType>> getHitModules() const;
 
-//  void addEfficiency(double efficiency, bool alsoPixel = false);
-//  void keepTriggerOnly();
-//  void setTriggerResolution(bool isTrigger);
-//  // static bool debugRemoval; // debug
-//  double expectedTriggerPoints(const double& triggerMomentum) const;
-//#ifdef TRACK_DEBUG_RZ
-//  static bool debugRZCovarianceMatrix;  // debug
-//  static bool debugRZCorrelationMatrix;  // debug
-//  static bool debugRZErrorPropagation;  // debug
-//#endif
-
 protected:
 
   //! Main method calculating track parameters in s-z plane only, using linear fit with parameters: cotg(theta), z0 -> internally calling computation of covMatrixRZ

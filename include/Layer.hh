@@ -268,13 +268,4 @@ private:
   double placeRadius_;
 };
 
-
-
-/*class TiltedLayer : public Layer, public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<TiltedLayer>, public Visitable {
-
- private :
-  TiltedRodTemplate tiltedRings_;
-
-  }*/
-
 #endif

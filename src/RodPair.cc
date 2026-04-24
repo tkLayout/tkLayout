@@ -248,7 +248,6 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
       }
     }
   }
- // std::cout << "next Z -  " << newZ << std::endl; 
   return newZ;
 }
 
@@ -278,7 +277,6 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
   if (fixedStartZ) {
     zList.push_back(newZ);
- //   std::cout << newZ << std::endl;
     newZ += (direction == BuildDir::RIGHT ? (*begin)->length() : (*begin)->length());
     parity = -parity;
     ++begin;
@@ -290,14 +288,10 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
     newZ = computeNextZ(curm->length(), curm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
     zList.push_back(newZ);
-   // std::cout << newZ << std::endl;
     newZ += (direction == BuildDir::RIGHT ? curm->length() : -curm->length());
     lastm = curm.get();
     parity = -parity;
   } 
-
-  //double lengthOffset = lastm->length();
-  //double physicalLengthOffset = lastm->physicalLength();
 
   for (; abs(newZ) < targetZ && n < targetMods; n++) {  // in case the rodtemplate vector is finished but we haven't hit the targetZ or targetMods yet, we keep on using the last module for dsDistance and length
     newZ = computeNextZ(lastm->length(), lastm->dsDistance(), lastm->dsDistance(), newZ, direction, parity);
@@ -471,9 +465,6 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < (int)tmspecs.size(); i++, ++it) {
     bool isTiltedModule = (tmspecs[i].gamma == 0);
-    //std::cout << "i = " << i << std::endl;
-    //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
-    //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
@@ -513,10 +504,6 @@ void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<Tilt
     check();
     buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
     buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT, flip);
-    //maxZ(zPlusModules_.back().maxZ());
-    //if (!zPlusModules_.empty()) {
-    //std::cout << "zPlusModules_.back().maxZ() = " << zPlusModules_.back().maxZ() << std::endl;
-    //}
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();

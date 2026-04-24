@@ -114,7 +114,6 @@ namespace material {
       double quantityInGrams(double length, double surface) const;
       void populateMaterialProperties(MaterialProperties& materialPropertie) const;
     private:
-      //const MaterialTab& materialTab_;
       const MaterialsTable& materialsTable_;
       static const std::string msg_no_valid_unit;
     };

@@ -58,10 +58,6 @@ namespace insur {
     // Not strictly necessary, but it's useful to keep
     // the color the same for the most used module types
     lastPickedColor = 1;
-    //colorPicker("pt2S");
-    //colorPicker("rphi");
-    //colorPicker("stereo");
-    //colorPicker("ptIn");
     geomLite           = nullptr; geomLiteCreated=false;
     geomLiteXY         = nullptr; geomLiteXYCreated=false;
     geomLiteYZ         = nullptr; geomLiteYZCreated=false;
@@ -186,11 +182,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
   else etaStep = getEtaMaxTrigger();
   nTracks = etaSteps;
 
-  // prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
-
   // reset the list of tracks
-  //std::map<string, std::vector<Track>> tv;
-  //std::map<string, std::vector<Track>> tvIdeal;
   std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMap;
   std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMap;
   std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMapIdeal;
@@ -209,12 +201,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
     // Assign material to the track
     tmp = findAllHits(mb, pm, track);
-
-    // Debug: material amount
-    // std::cerr << "eta = " << eta
-    //           << ", material.radiation = " << tmp.radiation
-    //           << ", material.interaction = " << tmp.interaction
-    //           << std::endl;
 
     // TODO: add the beam pipe as a user material eveywhere!
     // in a coherent way
@@ -306,21 +292,20 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
   if (!isPixel) {
     // Momentum = Pt
-    for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
+    for (auto& ttcmIt : taggedTrackPtCollectionMap) {
       const string& myTag = ttcmIt.first;
       clearGraphsPt(GraphBag::RealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      TrackCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
       	const int &parameter = tcmIt.first;
 	      const TrackCollection& myCollection = tcmIt.second;
-	      //std::cout << myCollection.size() << std::endl;
 	      calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
       }
     }
-    for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
+    for (auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
       const string& myTag = ttcmIt.first;
       clearGraphsPt(GraphBag::IdealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      TrackCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
 	      const int &parameter = tcmIt.first;
 	      const TrackCollection& myCollection = tcmIt.second;
@@ -329,21 +314,20 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     }
 
     // Momentum = P
-    for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
+    for (auto& ttcmIt : taggedTrackPCollectionMap) {
       const string& myTag = ttcmIt.first;
       clearGraphsP(GraphBag::RealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      TrackCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
 	      const int &parameter = tcmIt.first;
 	      const TrackCollection& myCollection = tcmIt.second;
-	      //std::cout << myCollection.size() << std::endl;
 	      calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
       }
     }
-    for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
+    for (auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
       const string& myTag = ttcmIt.first;
       clearGraphsP(GraphBag::IdealGraph, myTag);
-      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      TrackCollectionMap& myTrackCollection = ttcmIt.second;
       for (const auto& tcmIt : myTrackCollection) {
 	      const int &parameter = tcmIt.first;
 	      const TrackCollection& myCollection = tcmIt.second;
@@ -547,9 +531,6 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
 
           bool propagOutIn = approachOption;
 
-          //if (!propagOutIn) std::cout << "InOut approach" << std::endl;
-          //else              std::cout << "OutIn approach" << std::endl;
-
           // Reset track total probability & calculate p/pT based on option
           double pNotContamTot      = 1;
           //double pNotContamTotInner = 1;
@@ -567,9 +548,6 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
           int nMeasuredHits = 0;
           if (!propagOutIn) nMeasuredHits = track.getNMeasuredHits("all", !useIP);
           else              nMeasuredHits = track.getNMeasuredHits("all", !useIP);
-
-          //track.printHits();
-          //std::cout << ">> " << nMeasuredHits << " dD0=" << track.getDeltaD(0.0)/Units::um << " dZ0=" << track.getDeltaZ(0.0)/Units::um << std::endl;
 
           // Start with first 3 hits and end with N-1 hits (C counting from zero)
           bool testTriplet = true;
@@ -619,9 +597,6 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
             double dZProj     = track.getDeltaZ(nextRPos,propagOutIn)/corrFactor;
             double dDProj     = track.getDeltaD(nextRPos,propagOutIn);
 
-            // Print info
-            //std::cout << ">> " << iHitID << " R=" << nextRPos/Units::mm << " dD=" << dDProj/Units::um << " " << " Z=" << nextZPos/Units::mm << " dZ=" << dZProj/Units::um << std::endl;
-
             // Calculate how many sigmas does one need to get in 2D Gauss. 5% coverge
             // F(mu + n*sigma) - F(mu - n*sigma) = erf(n/sqrt(2))
             // In 2D we assume independent measurement in r-phi & Z, hence 0.95 = erf(n/sqrt(2))*erf(n/sqrt(2)) assuming the same number of sigmas (n) in both r-phi & z
@@ -636,7 +611,6 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
             if (pContam>1) pContam = 1.0;
             pNotContamTot *= 1-pContam;
 
-            //
             // Fill d0proj, z0proj & pContam for individual layers/discs to histograms
 
             // Probability of inner tracker only
@@ -740,10 +714,8 @@ bool Analyzer::analyzePatterReco(MaterialBudget& mb, mainConfigHandler& mainConf
             }
           } // Pattern reco loop
 
-          //
           // Calculate total contamination based on different options: p/pT, in-out/out-in
           double pContamTot      = 1-pNotContamTot;
-          //double pContamInnerTot = 1-pNotContamTotInner;
           if (pOption==0) {
 
             if (approachOption==0) {
@@ -816,7 +788,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                            const TrackCollection& tracks) {
 
   // Prepare the graphs to record the number of triggered points
-  //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(GraphBag::TriggerGraph|GraphBag::TriggeredGraph);
   std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
   std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
   std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
@@ -832,7 +803,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
     double eta   = iTrack->getEta();
     int    nHits = iTrack->getNActiveHits("all");
     totalProfile.Fill(eta, nHits);
-    //std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
 
     for(auto& iMomentum : triggerMomenta) {
 
@@ -848,7 +818,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
 
           myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
           double curAvgTrue=0;
-          double curAvgInteresting=0;
           double curAvgFake=0;
           double bgReductionFactor; // Reduction of the combinatorial background for ptPS modules by turning off the appropriate pixels
 
@@ -863,8 +832,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
               if (hitModule==nullptr) logERROR("Track::fillTriggerEfficiencyGraphs: This SHOULD NOT happen -> an active hit does not correspond to any module!");
 
               PtErrorAdapter pterr(*hitModule);
-              // Hits that we would like to have from tracks above this threshold
-              curAvgInteresting += pterr.getParticleFrequencyPerEventAbove(iMomentum);
               // ... out of which we only see these
               curAvgTrue += pterr.getTriggerFrequencyTruePerEventAbove(iMomentum);
 
@@ -890,13 +857,6 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
       }
     } // For trigger momenta
   } // For tracks
-//  for (auto i : stubEfficiencyCoverageProfiles) {
-//    std::cout << "--------------------- " << i.first << " ------------------ " << std::endl;
-//    for (auto j : i.second) {
-//      std::cout << j.first << std::endl;
-//      j.second->Print("all");
-//    }
-//  }
   if (totalProfile.GetMaximum() < plotNumberOfTriggeredPointsMaxY) totalProfile.SetMaximum(plotNumberOfTriggeredPointsMaxY);
 }
 
@@ -924,10 +884,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   // reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
   setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
   setCellBoundaries(nTracks, 0.0, geom_max_radius + geom_inactive_volume_width, 0.0, getEtaMaxMaterial());
-
-  // reset the list of tracks
-  // std::vector<Track> tv;
-  // std::vector<Track> tvIdeal;
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * M_PI * 2.0;
@@ -1007,28 +963,18 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
         std::vector<double> probabilities = track.getHadronActiveHitsProbability(trackingTag);
 
         double averageHits=0;
-        //double averageSquaredHits=0;
         double exactProb=0;
         double moreThanProb = 0;
         for (int i=probabilities.size()-1;
              i>=0;
              --i) {
-          //if (nActive==10) { // debug
-          //  std::cerr << "probabilities.at(" 
-          //  << i << ")=" << probabilities.at(i)
-          //  << endl;
-          //}
           exactProb=probabilities.at(i)-moreThanProb;
           averageHits+=(i+1)*exactProb;
-          //averageSquaredHits+=((i+1)*(i+1))*exactProb;
           moreThanProb+=exactProb;
         }
         hadronAverageHitsGraph.SetPoint(hadronAverageHitsGraph.GetN(),
                                         eta,
                                         averageHits);
-        //hadronAverageHitsGraph.SetPointError(hadronAverageHitsGraph.GetN()-1,
-        //                       0,
-        //                       sqrt( averageSquaredHits - averageHits*averageHits) );
 
         unsigned int requiredHits;
         for (unsigned int i = 0;
@@ -1041,13 +987,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
             probability = 0;
           else
             probability = probabilities.at(requiredHits-1);
-          //if (probabilities.size()==10) { // debug
-          //  std::cerr << "required " << requiredHits
-          //              << " out of " << probabilities.size()
-          //              << " == " << nActive
-          //              << endl;
-          // std::cerr << "      PROBABILITY = " << probability << endl << endl;
-          //}
           hadronGoodTracksFraction.at(i).SetPoint(hadronGoodTracksFraction.at(i).GetN(),
                                                   eta,
                                                   probability);
@@ -1158,100 +1097,11 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
  */
 void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result,
                                       bool byMaterial) {
-
-  /*
-  map<std::string, map<std::pair<int, int>, bool> > typeTaken;
-  map<std::string, map<std::pair<int, int>, bool> > typeWritten;
-
-  string tempString;
-  ostringstream tempSS;
-  */
-
   std::vector<std::vector<ModuleCap> >::iterator layerIt;
-  //std::vector<std::vector<ModuleCap> >::iterator layerGuard;
   std::vector<ModuleCap>::iterator moduleIt;
-  //std::vector<ModuleCap>::iterator moduleGuard;
 
   ModuleCap* myModuleCap;
   Module* myModule;
-  //  unsigned int nLocalMasses;
-
-  /*
-  std::map<std::string, double>::const_iterator localmassesBegin;
-  std::map<std::string, double>::const_iterator localmassesEnd;
-
-  // First create a list of material used anywhere
-  std::vector<std::string> materialTagV;
-  std::vector<std::string>::iterator materialTagIt;
-
-  double localMaterial;
-  string materialTag;
-  
-
-  // loop over layers
-  for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) {
-    // Loop over modules
-    for (moduleIt = layerIt->begin(); moduleIt != layerIt->end(); ++moduleIt) {
-      // Check if the module is on the YZ section
-      myModuleCap = &(*moduleIt);
-      myModule = &(myModuleCap->getModule());
-      if (myModule->posRef().phi==1) {
-        pair<int, int> myIndex = make_pair(myModule->tableRef().row, myModule->tableRef().col);
-        tempString = myModule->subdetectorName();
-        if (!typeTaken[tempString][myIndex]) {
-          typeTaken[tempString][myIndex]=true;
-          // TODO: put this in a better place
-          // (and make a better module typing)
-          struct Visitor : public ConstGeometryVisitor {
-            std::map<string, SummaryTable>& result;
-
-            Visitor(std::map<std::string, SummaryTable>& result_) : result(result_) {}
-            void visit(const BarrelModule& m) {
-              string s = "Ring " + any2str(m.ring());
-              result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
-            }
-            void visit(const EndcapModule& m) {
-	      string s = "Ring " + any2str(m.ring());
-              result[s].setCell(0, m.ring(), TagMaker::makePosTag(m));
-            }
-          };
-          Visitor v(result);
-          myModule->accept(v);
-        }
-        if (byMaterial) { // sort by Material tag
-          //nLocalMasses = myModuleCap->localMassCount();
-          localmassesBegin = myModuleCap->getLocalMasses().begin();
-          localmassesEnd = myModuleCap->getLocalMasses().end();
-        } else { // sort by Component tag
-          //nLocalMasses = myModuleCap->localMassCompCount();
-          localmassesBegin = myModuleCap->getLocalMassesComp().begin();
-          localmassesEnd = myModuleCap->getLocalMassesComp().end();
-        }
-        for (std::map<std::string, double>::const_iterator it = localmassesBegin; it != localmassesEnd; ++it) {
-          // if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
-          //  else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
-          materialTag = it->first;
-          materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
-          if (materialTagIt==materialTagV.end()) {
-            materialTagV.push_back(materialTag);
-          }
-        }
-      }
-    }
-  }
-  
-  // Alphabetically sort materials
-  std::sort(materialTagV.begin(), materialTagV.end());
-
-  // Prepare the columns of the tables
-  for (map<string, SummaryTable>::iterator it=result.begin(); it!=result.end(); ++it) {
-    for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
-      it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
-    }
-    it->second.setCell(materialTagV.size()+1, 0, "Total");
-  }
-
-  */
 
   // Now fill the table
   // loop over layers
@@ -1267,63 +1117,6 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
         typeWeight[tmak.posTag]+=myModuleCap->getLocalMass();
         tagWeight[tmak.sensorGeoTag]+=myModuleCap->getLocalMass();
       }
-      /*
-      if (myModule->posRef().phi == 1) {
-        // If we did not write this module type yet
-        pair<int, int> myIndex = make_pair(myModule->tableRef().row/, myModule->tableRef().col);
-        tempString = myModule->subdetectorName();
-        if (!typeWritten[tempString][myIndex]) {
-          typeWritten[tempString][myIndex]=true;
-          if (tempString!="") {
-            // TODO: put this in a better place
-            // (and make a better module typing)
-            tempSS.str("");
-            if (myModule->subdet() == BARREL) {
-              tempSS << ((BarrelModule*)myModule)->layer();
-              tempString+=" (L"+tempSS.str()+")";
-            } else if (myModule->subdet() == ENDCAP) {
-              tempSS << ((EndcapModule*)myModule)->disk(); //getDisk();
-              tempString+=" (D"+tempSS.str()+")";
-            } else {
-              cerr << "ERROR in Analyzer::detailedWeights(): "
-                  << "I found a module which is neither endcap nor barrel!" << std::endl;
-            }
-            //      cout << "Here's a module: id = " << myModule->getId()
-            //           << ", tag = " << myModule->getTag()
-            //           << ", type = " << myModule->getType()
-            //           << ", ring = " << myModule->getRing()
-            //           << endl;
-            // std::cout << "Material\tLocal\n";
-
-            // Then we fill in the proper column
-            // Prepare the columns of the table
-            for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
-              materialTag = materialTagV[materialTag_i];
-              if (byMaterial) { // table by materials
-                try { localMaterial = myModuleCap->getLocalMass(materialTag); }
-                catch (exception e) { localMaterial = 0; }
-              } else { // table by components
-                try { localMaterial = myModuleCap->getLocalMassComp(materialTag); }
-                catch (exception e) { localMaterial = 0; }
-              }
-              //cout << materialTag << "\t"
-              //<< localMaterial << "\t"
-              //<< endl;
-              tempSS.str("");
-              // TODO: move this to Vizard
-              tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial;
-              result[tempString].setCell(materialTag_i+1, myModule->tableRef().col, tempSS.str());
-            }
-            localMaterial = myModuleCap->getLocalMass();
-            tempSS.str("");
-            tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial;
-            result[tempString].setCell(materialTagV.size()+1, myModule->tableRef().col, tempSS.str());
-          } else {
-            cerr << "ERROR in Analyzer::detailedWeights(): "
-                << "I found a module with no reference to the container name." << endl;
-          }
-        }
-	}*/
     }
   }
 }
@@ -1410,7 +1203,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   origin    = track.getOrigin();
   direction = track.getDirection();
   double distance, r;
-  int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
@@ -1420,12 +1212,9 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
     if (iter->getModule().maxZ() > 0) {
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
-        //distance = iter->getModule().trackCross(origin, direction);
         auto h = iter->getModule().checkTrackHits(origin, direction);
         if (h.second != HitType::NONE) {
           distance = h.first.R();
-          // module was hit
-          hits++;
           r = distance * sin(track.getTheta());
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
@@ -1445,8 +1234,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
             tmp.interaction = tmp.interaction / cos(track.getTheta() + tiltAngle - M_PI/2);
           }
 
-          double tmpr = 0., tmpi = 0.;
-
 	  const double theta = track.getTheta();
 
 	  const std::map<LocalElement, RILength, ComponentNameCompare>& modulesComponentsRI = iter->getComponentsRI();
@@ -1458,10 +1245,6 @@ RILength Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
 
 	    sumComponentsRI[componentName].radiation += correctedMat.radiation;
 	    sumComponentsRI[componentName].interaction += correctedMat.interaction;
-
-	    // TO DO: what the hell is this duplicated work? also, the sum might not even be ok.
-            tmpr += sumComponentsRI.at(componentName).radiation; 
-            tmpi += sumComponentsRI.at(componentName).interaction;
           }
           // 2D plot and eta plot results
           if (!isPixel) fillCell(r, track.getEta(), track.getTheta(), tmp);
@@ -1527,7 +1310,6 @@ int Analyzer::findHitsModules(Tracker& tracker, Track& t) {
 
   for (auto aModule : tracker.modules()) {
       // same method as in Tracker, same function used
-      //distance = aModule->trackCross(origin, direction);
       auto ht = aModule->checkTrackHits(origin, direction);
 
       if (ht.second != HitType::NONE) {
@@ -1567,7 +1349,6 @@ RILength Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, 
   XYZVector origin, direction;
   origin    = t.getOrigin();
   direction = t.getDirection();
-  int hits = 0;
   res.radiation = 0.0;
   res.interaction = 0.0;
   // set the track direction vector
@@ -1575,7 +1356,6 @@ RILength Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, 
         auto h = iter->getModule().checkTrackHits(origin, direction); 
         if (h.second != HitType::NONE) {
           // module was hit
-          hits++;
           tmp.radiation = iter->getRadiationLength();
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
@@ -1620,14 +1400,6 @@ RILength Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer, Track& t, 
 
 RILength Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, Track& track,
                                            std::map<std::string, RILength>& sumServicesComponentsRI, MaterialProperties::Category cat, bool isPixel) {
-
-  /*
-  for (InactiveElement& currElem : elements) {
-    currElem.calculateTotalMass();
-    currElem.calculateRadiationLength();
-    currElem.calculateInteractionLength();
-  }
-  */
   
   std::vector<InactiveElement>::iterator iter = elements.begin();
   std::vector<InactiveElement>::iterator guard = elements.end();
@@ -1635,9 +1407,6 @@ RILength Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
   std::pair<double, double> tmp;
 
   while ((iter != guard)) {
-    //if  ((iter->getInteractionLength() > 0) && (iter->getRadiationLength() > 0)) {
-    // collision detection: rays are in z+ only, so only volumes in z+ need to be considered
-    // only volumes of the requested category, or those without one (which should not exist) are examined
     if (((iter->getZOffset() + iter->getZLength()) > 0)
         && ((cat == MaterialProperties::no_cat) || (cat == iter->getCategory()))) {
       // collision detection: check eta range
@@ -1645,15 +1414,6 @@ RILength Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
       // volume was hit
       if ((tmp.first < track.getEta()) && (tmp.second > track.getEta())) {
         double rPos, zPos;
-        /*
-        if (eta<0.01) {
-          std::cout << "Hitting an inactive surface at z=("
-                    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
-                    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
-          const std::map<std::string, double>& localMasses = iter->getLocalMasses();
-          for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-        }
-        */
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) {
           zPos = iter->getZOffset() + iter->getZLength() / 2.0;
@@ -1777,12 +1537,6 @@ RILength Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
 
 	// Total inactive MB
 	total += hitMaterial;
-
-	//        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
-	//        else hit->setOrientation(Hit::Horizontal);
-	//        hit->setObjectKind(Hit::Inactive);
-	//        hit->setPixel(isPixel);
-	//        t.addHit(hit);
       }
     }
     return total;
@@ -1910,22 +1664,6 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     const double& dctg = myTrack->getDeltaCtgTheta(rPos);
     const double& dz0  = myTrack->getDeltaZ0();
     const double& dp   = myTrack->getDeltaPOverP(rPos);
-
-    /*std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
-    if ( hitModules.at(0).first->getObjectKind() == Active) {
-    std::cout << "hitModules.at(0).first->getResolutionLocalX() = " << hitModules.at(0).first->getResolutionLocalX() << std::endl;
-    }*/
-
-//    std::vector<Hit*> hitModules = myTrack.getHitV();
-//    //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
-//    //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
-//    for (auto& mh : hitModules) {
-//    if ( mh->getObjectKind() == Hit::Active) {
-//      if (mh->getHitModule()) {
-//	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
-//      }
-//    }
-//    }
 
 
     eta = myTrack->getEta();
@@ -2232,7 +1970,6 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
  
       for (const auto& tcmIt : myTrackCollection) {
-	//const int &parameter = tcmIt.first;
 	const TrackCollection& myCollection = tcmIt.second;
 
  	// track loop
@@ -2339,7 +2076,6 @@ void Analyzer::clearMaterialBudgetHistograms() {
 
   hadronNeededHitsFraction.push_back(ZeroHitsRequired);
   hadronNeededHitsFraction.push_back(OneHitRequired);
-  //hadronNeededHitsFraction.push_back(.33);
   hadronNeededHitsFraction.push_back(.66);
   hadronNeededHitsFraction.push_back(1);
 
@@ -2479,8 +2215,6 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
 
   prepareTrackerMap(thicknessMap, "thicknessMap", "Module thickness map");
-  //thicknessMap.SetMinimum(0);
-  //thicknessMap.SetMaximum(6);
   prepareTrackerMap(windowMap, "windowMap", "Module window map");
   prepareTrackerMap(suggestedSpacingMap, "suggestedSpacingMap", "Map of nearest available spacing [using standard window]");
   prepareTrackerMap(suggestedSpacingMapAW, "suggestedSpacingMapAW", "Map of nearest available spacing [using selected windows]");
@@ -2492,7 +2226,6 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   myProfileBag.clearTriggerProfiles();
 
   // Prepare the graphs to record the number of triggered points
-  // std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(GraphBag::TriggerGraph|GraphBag::TriggeredGraph);
   std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
   std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
   std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
@@ -2505,14 +2238,10 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   for (vector<double>::const_iterator iter = triggerMomenta.begin();
        iter != triggerMomenta.end();
        ++iter) {
-    //std::pair<double, TGraph> elemGraph;
     std::pair<double, TProfile> elemProfile;
     std::pair<double, TProfile> elemFractionProfile;
     std::pair<double, TProfile> elemPurityProfile;
-    //TGraph graph;
     TProfile profile("dummyName", "dummyTitle", nbins, 0, myEtaMax);
-    //elemGraph.first = *iter;
-    //elemGraph.second = graph;
     elemProfile.first = *iter;
     elemProfile.second = profile;
     elemFractionProfile.first = *iter;
@@ -2520,11 +2249,9 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
     elemPurityProfile.first = *iter;
     elemPurityProfile.second = profile;
     // Prepare plots: triggered graphs
-    // trigGraphs.insert(elemGraph);
     trigProfiles.insert(elemProfile);
     trigFractionProfiles.insert(elemFractionProfile);
     trigPurityProfiles.insert(elemPurityProfile);
-    // trigGraphs[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
     trigProfiles[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
     trigFractionProfiles[*iter].SetTitle("Average trigger efficiency;#eta;Efficiency [%]");
     trigPurityProfiles[*iter].SetTitle("Average stub purity;#eta;Purity [%]");
@@ -2536,22 +2263,14 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
     trigPurityProfiles[*iter].SetName(aName.str().c_str());
   }
 
-  //std::pair<double, TGraph> elemTotalGraph;
   std::pair<double, TProfile> elemTotalProfile;
-  //TGraph totalGraph;
   char dummyName[256]; sprintf(dummyName, "dummyName%d", bsCounter++);
   TProfile totalProfile(dummyName, dummyName, nbins, 0, myEtaMax);
-  //elemTotalGraph.first = GraphBag::Triggerable;
-  //elemTotalGraph.second = totalGraph;
   elemTotalProfile.first = profileBag::Triggerable;
   elemTotalProfile.second = totalProfile;
   // Prepare plot: total trigger points
-  //trigGraphs.insert(elemTotalGraph);
   trigProfiles.insert(elemTotalProfile);
-  //trigGraphs[GraphBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
   trigProfiles[profileBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
-  //aName.str(""); aName << "triggerable_vs_eta_graph";
-  //trigGraphs[GraphBag::Triggerable].SetName(aName.str().c_str());
   aName.str(""); aName << "triggerable_vs_eta_profile";
   trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
 
@@ -2603,10 +2322,6 @@ void Analyzer::clearGeometryHistograms() {
   etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
   hitDistribution.Reset();
   hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");
-  //geomLite->SetName("geometryLite");   geomLite->SetTitle("Modules geometry");
-  //geomLiteXY->SetName("geometryLiteXY"); geomLiteXY->SetTitle("Modules geometry (XY Section)");
-  //geomLiteYZ->SetName("geometryLiteYZ"); geomLiteYZ->SetTitle("Modules geometry (EC Section)");
-  //geomLiteEC->SetName("geometryLiteEC"); geomLiteEC->SetTitle("Modules geometry (Endcap)");
 
   // Power density
   while (powerDensity.GetN()) powerDensity.RemovePoint(0);
@@ -2728,10 +2443,8 @@ TH2D& Analyzer::getHistoMapRadiation() {
   for (int iBin=1; iBin<=nBins; ++iBin) {
     content = mapRadiation.GetBinContent(iBin);
     count = mapRadiationCount.GetBinContent(iBin);
-    //mapRadiationCalib.SetBinContent(iBin,content);
     if (count==1) mapRadiationCalib.SetBinContent(iBin,content);
     else if (count>1) mapRadiationCalib.SetBinContent(iBin,content/double(count));
-    //else if (count==0) mapRadiationCalib.SetBinContent(iBin, 0.);
   }
   return mapRadiationCalib;
 }
@@ -2917,7 +2630,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   std::map <std::string, TProfile> etaProfileByType;
   std::map <std::string, TProfile> etaProfileByTypeSensors;
   std::map <std::string, TProfile> etaProfileByTypeStubs;
-//  TH2D* aPlot;
   std::string aType;
 
 
@@ -3036,9 +2748,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   std::map<std::string, int> modulePlotColors; // CUIDADO quick and dirty way of creating a map with all the module colors (a cleaner way would be to have the map already created somewhere else)
 
-  //XYZVector dir(0, 1, 0);
   // Shoot nTracksPerSide^2 tracks
-  //double angle = M_PI/2/(double)nTracksPerSide;
   for (int i=0; i<nTracksPerSide; i++) {
     for (int j=0; j<nTracksPerSide; j++) {
       // Reset the hit counter
@@ -3096,8 +2806,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       mapPhiEtaDTC.Fill(aLine.first.Phi(), aLine.second, hitModulesDTC.size()); // phi, eta  DTC 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
 
-    //  totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
-    //  totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
       totalEtaProfile.Fill(aLine.second, hitModules.size());                // Total number of hits
       totalEtaProfileSensors.Fill(aLine.second, numHits);
 
@@ -3142,15 +2850,12 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   savingGeometryV.push_back(mapPhiEta);
 
   // Eta profile compute
-  //TProfile *myProfile;
 
   etaProfileCanvas.cd();
   savingGeometryV.push_back(etaProfileCanvas);
 
-  //TProfile* total = total2D.ProfileX("etaProfileTotal");
   char profileName_[256];
   sprintf(profileName_, "etaProfileTotal%d", bsCounter++);
-  // totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
   savingGeometryV.push_back(totalEtaProfile);
   const double plotNumberOfHitModulesMaxY = (!tracker.isPixelTracker() ? plotNumberOfOuterTrackerHitModulesMaxY : plotNumberOfInnerTrackerHitModulesMaxY);
   if (totalEtaProfile.GetMaximum() < plotNumberOfHitModulesMaxY) totalEtaProfile.SetMaximum(plotNumberOfHitModulesMaxY);
@@ -3647,11 +3352,9 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 					       const int plotMaxNumberOfStubs) {
 
     // Number of hit layers
-  //  totalEtaProfileLayers.Fill(fabs(aLine.second), numLayersWithAtLeastOneHit);
     totalEtaProfileLayers.Fill(aLine.second, numLayersWithAtLeastOneHit);
 
     // Number of stubs
-   // totalEtaProfileStubs.Fill(fabs(aLine.second), numStubsPerTrack);
     totalEtaProfileStubs.Fill(aLine.second, numStubsPerTrack);
     
     // Distribution of tracks per number of stubs

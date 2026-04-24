@@ -285,14 +285,6 @@ public:
  MultiProperty(const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref("unnamed")) {}
   bool state() const { return !T::empty(); }
   void clear() { T::clear(); }
-  //const T& operator()() const { return values_; }
-  //T& operator()() const { return values_; }
-  //void operator()(const T& values) { values_ = values; }
-  //typename T::const_iterator begin() const { return values_.begin(); }
-  //typename T::const_iterator end() const { return values_.end(); }
-  //typename T::iterator begin() { return values_.begin(); }
-  //typename T::iterator end() { return values_.end(); }
-  //void clear() { values_.clear(); }
   string name() const { return name_; }
   void fromPtree(const ptree& pt) { fromString(pt.data()); }
   void fromString(const string& s) { 
@@ -423,8 +415,6 @@ public:
         pt_.add_child(propElem.first, propElem.second); 
       } // merging trees in a careless manner, appending children without ever checking if an entry with the same key is already present. the duplicates thus formed will be all grabbed at parsing time by the properties (each duplicate entry overwrites the previous)
     }
-//    std::cout << "============ " << pt_.data() << " ===========" << std::endl;
-//    printAll(pt_);
     processProperties(parsedCheckedProperties_);
     processProperties(parsedProperties_);
     recordMatchedProperties();
@@ -463,9 +453,5 @@ inline ptree getChild(const ptree& pt, const string& name) {
   return ptree();
 }
 inline auto getChildRange(const ptree& pt, const string& name) -> decltype(pt.equal_range(name)) { return pt.equal_range(name); } 
-
-
-std::set<string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid);
-
 
 #endif

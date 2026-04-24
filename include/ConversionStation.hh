@@ -49,7 +49,6 @@ namespace material {
     std::string subdetectorName_;
     static const std::map<std::string, Type> typeString;
     Type stationType_;
-    bool valid_;
     PropertyNodeUnique<std::string> conversionsNode_;
     PropertyNodeUnique<std::string> nonConvertedMaterialsNode_;
 

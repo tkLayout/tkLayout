@@ -132,8 +132,6 @@ TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flat
       deltaZInner_[i] = tiltedRingsGeometry[i]->zInner() - tiltedRingsGeometry[i-1]->zInner();
       deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
 
-      //covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
-
       double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - tiltedRingsGeometry[i-1]->rEndInner_REAL()) / (tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i-1]->zEndInner_REAL()) );
       zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
 
@@ -677,10 +675,6 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
   const double skewedRodTotalPhiCov = plusBigDeltaRodPhiCov / 2. + beta;
 
   const double skewedModuleMaxRho = (plusBigDeltaRodCenterRho + skewedModuleEdgeShift * cos(skewAperture/2.)) / cos(beta); // the skewed rod is at +bigDelta
-  /*const double skewedRodUpperHalfPhiCov = acos( 
-					       (pow(skewedModuleMaxRho, 2.) + pow(skewedModuleCenterRho, 2.) - pow((0.5 * moduleWidth), 2.)) 
-					       / ( 2. * skewedModuleMaxRho * skewedModuleCenterRho)
-					       );*/
 
   // NUMBER OF RODS
   const int numSkewedRods = 2; // Harcoded number of skewed rods!!
@@ -706,8 +700,6 @@ const SkewedLayerInfo Layer::computeSkewedLayerInfo(const double layerCenterRho,
 
 
   // COMPUTE PHI SHIFTS (TO BE USED FOR ROD PLACEMENT IN PHI)
-  //installationSkewedRodCenterPhiShift = skewedRodTotalPhiCov / 2. - skewedInstallationPhiOverlapAngle;
-  //nextRodCenterPhiShift = skewedRodTotalPhiCov / 2. + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
   const double installationMinusBigDeltaRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. - unskewedInstallationPhiOverlapAngle;
   const double commonRodCenterPhiShift = minusBigDeltaRodPhiCov / 2. + plusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle;
   const double skewedRodCenterPhiShift = skewedRodLowerHalfPhiCov + minusBigDeltaRodPhiCov / 2. - unitPhiOverlapAngle; // the skewed rod is at +bigDelta 
@@ -996,29 +988,6 @@ void Layer::buildTilted() {
 	int ringNumber = buildNumModulesFlat() + 1 + i;
 	TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
 	TiltedModuleSpecs to{ tiltedRingsGeometry_[ringNumber]->outerRadius(), tiltedRingsGeometry_[ringNumber]->zOuter(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
-	/*std::cout << "ringNumber = " << ringNumber << std::endl;
-	  std::cout << "tiltAngle = " << tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. << std::endl;
-	  std::cout << "innerRadius = " << tiltedRingsGeometry_[ringNumber]->innerRadius() << std::endl;
-	  std::cout << "zInner = " << tiltedRingsGeometry_[ringNumber]->zInner() << std::endl;
-	  std::cout << "outerRadius = " << tiltedRingsGeometry_[ringNumber]->outerRadius() << std::endl;
-	  std::cout << "zOuter = " << tiltedRingsGeometry_[ringNumber]->zOuter() << std::endl;*/
-
-
-
-
-	/*std::cout << "theta2 = " << tiltedRingsGeometry_[ringNumber]->thetaOuter() * 180. / M_PI << std::endl;
-	  std::cout << "idealTilt2 = " << tiltedRingsGeometry_[ringNumber]->tiltAngleIdealOuter() << std::endl;
-	  std::cout << "gap = " << tiltedRingsGeometry_[ringNumber]->gapR() << std::endl;
-	  std::cout << "avR = " << tiltedRingsGeometry_[ringNumber]->averageR() << std::endl;
-	  if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[ringNumber]->thetaStartInner() - tiltedRingsGeometry_[ringNumber-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
-	  if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[ringNumber]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
-
-	  if (i >= 1) {
-	  double zErrorAngle = atan( (tiltedRingsGeometry_[ringNumber]->rStartOuter_REAL() - tiltedRingsGeometry_[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry_[i-1]->zEndOuter_REAL() - tiltedRingsGeometry_[ringNumber]->zStartOuter_REAL()) );
-	  std::cout << "zError = " << tiltedRingsGeometry_[ringNumber]->zStartOuter_REAL() + tiltedRingsGeometry_[ringNumber]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
-	  }
-
-	  std::cout << "cov2 = " << atan(tiltedRingsGeometry_[ringNumber]->rEndOuter_REAL() / tiltedRingsGeometry_[ringNumber]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
 
 	if (ti.valid()) tmspecsi.push_back(ti);
 	if (to.valid()) tmspecso.push_back(to);

@@ -17,7 +17,6 @@ void DetectorModule::setup() {
   nominalResolutionLocalX.setup([this]() {
       // only set up this if no model parameter specified
       if (!hasAnyResolutionLocalXParam()) {
-	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
 	double res = 0;
 	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
 	return sqrt(res)/numSensors();
@@ -201,14 +200,8 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
     double         rmin;
     double         rmax;
-    //double         xmin;
-    //double         xmax;
-    //double         ymin;
-    //double         ymax;
     double         zmin;
     double         zmax;
-    //double         rminatzmin;
-    //double         rmaxatzmax;
     std::vector<XYZVector> vertex; 
 
 
@@ -262,10 +255,6 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
       zv.push_back(v_bottom[ip].Z());
     }
     // Find min and max
-    //xmin = *std::min_element(xv.begin(), xv.end());
-    //xmax = *std::max_element(xv.begin(), xv.end());
-    //ymin = *std::min_element(yv.begin(), yv.end());
-    //ymax = *std::max_element(yv.begin(), yv.end());
     zmin = *std::min_element(zv.begin(), zv.end());
     zmax = *std::max_element(zv.begin(), zv.end());
 
@@ -328,8 +317,6 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     // Find min and max
     rmin = *std::min_element(rv.begin(), rv.end());
     rmax = *std::max_element(rv.begin(), rv.end());
-    //rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
-    //rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
 
 
     extrema["minZ"] = zmin;
@@ -874,7 +861,6 @@ const int DetectorModule::innerDTCPlotColor() const {
 void BarrelModule::build() {
   try {
     DetectorModule::build();
-    //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
 
     rAxis_ = normal();
@@ -895,7 +881,6 @@ void BarrelModule::build() {
 void EndcapModule::build() {
   try {
     DetectorModule::build();
-    //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
 
     // tilt
