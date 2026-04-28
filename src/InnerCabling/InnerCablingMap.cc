@@ -60,12 +60,11 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
 
     const bool isBarrel = myPowerChain->isBarrel();
     const std::string subDetectorName = myPowerChain->subDetectorName();
-    const int layerNumber = myPowerChain->layerDiskNumber();
-    const int ringNumber = myPowerChain->ringNumber();
     const int numModulesInPowerChain = myPowerChain->numModules();
 
-    const int layerOrRingNumber = (isBarrel ? layerNumber : ringNumber);
-    const int numELinksPerModule = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, layerOrRingNumber);
+    const int layerOrRingNumber = (isBarrel ? myPowerChain->layerDiskNumber()
+                                            : myPowerChain->ringNumber());
+    const int numELinksPerModule = inner_cabling_functions::computeNumELinksModule(subDetectorName, layerOrRingNumber, myPowerChain->phiRef());
 
     auto [numGBTsInPowerChain, numModulesPerGBTExact] = computeNumGBTsInPowerChain(numELinksPerModule, numModulesInPowerChain, isBarrel);
     myPowerChain->setNumGBTsInPowerChain(numGBTsInPowerChain);
@@ -76,7 +75,7 @@ void InnerCablingMap::connectModulesToGBTs(std::map<int, std::unique_ptr<PowerCh
         for (auto& m: myPowerChain->modules()) {
             int ringRef = m->uniRef().ring;
             int phiRefInPowerChain = m->getPhiRefInPowerChain();
-            int numELinks = inner_cabling_functions::computeNumELinksPerModule(subDetectorName, ringRef); 
+            int numELinks = inner_cabling_functions::computeNumELinksModule(subDetectorName, ringRef, phiRefInPowerChain);
             int gbtIndex = computeGBTIndexInSpecialPowerChain(ringRef, numELinks, phiRefInPowerChain, phiRef);
             const std::string myGBTId = computeGBTId(powerChainId, gbtIndex);
             createAndStoreGBTs(myPowerChain, m, myGBTId, gbtIndex, numELinks, GBTs);

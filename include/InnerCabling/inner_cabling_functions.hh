@@ -26,7 +26,7 @@ namespace inner_cabling_functions {
   const bool isSmallerAbsZHalfRing(const int halfRingIndex);
 
   // compute number of ELinks per module
-  std::size_t computeNumELinksPerModule(const std::string& subDetectorName, const std::size_t layerOrRingNumber);
+  std::size_t computeNumELinksModule(const std::string& subDetectorName, std::size_t layerOrRingNumber, int phiRefInPowerChain);
 }
 
 

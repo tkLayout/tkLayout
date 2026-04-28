@@ -152,7 +152,7 @@ namespace inner_cabling_functions {
   /*
    * Compute the number of ELinks per module, depending on the module location.
    */
-std::size_t computeNumELinksPerModule(const std::string& subDetectorName, const std::size_t layerOrRingNumber) {
+std::size_t computeNumELinksModule(const std::string& subDetectorName, std::size_t layerOrRingNumber, int phiRefInPowerChain) {
     const auto it = inner_cabling_numELinksPerModule.find(subDetectorName);
     if (it == inner_cabling_numELinksPerModule.end()) {
       logERROR(any2str("Unknown subDetector name : ") + any2str(subDetectorName));
@@ -166,7 +166,12 @@ std::size_t computeNumELinksPerModule(const std::string& subDetectorName, const 
       return 0; // Fallback
     }
 
-    return it2->second;
+    std::size_t numELinks = it2->second;
+    if (subDetectorName == inner_cabling_tepx && layerOrRingNumber == 2 && phiRefInPowerChain == 0) {
+      numELinks -= 1; // Special case for TEPX-R2
+    }
+
+    return numELinks;
   }
 
 } // namespace
