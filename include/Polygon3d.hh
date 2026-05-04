@@ -9,6 +9,8 @@
 
 #include <TRandom.h>
 #include <Math/Vector3Dfwd.h>
+#include <Math/GenVector/RotationX.h>
+#include <Math/GenVector/RotationY.h>
 #include <Math/GenVector/RotationZ.h>
 #include <Math/GenVector/Rotation3D.h>
 #include <Math/GenVector/Transform3D.h>
@@ -22,44 +24,8 @@ struct PolygonLess {
   }
 };
 
-template<class Coords, class FloatType>
-struct RotateX {};
-
-template<class FloatType>
-struct RotateX<XYZVector, FloatType> {
-  XYZVector operator()(const XYZVector& vector, FloatType angle) const {
-    return XYZVector(vector.X(),
-                     vector.Y()*cos(angle) - vector.Z()*sin(angle),
-                     vector.Y()*sin(angle) + vector.Z()*cos(angle));
-  }
-};
-
-template<class Coords, class FloatType>
-struct RotateY {};
-
-template<class FloatType>
-struct RotateY<XYZVector, FloatType> {
-  XYZVector operator()(const XYZVector& vector, FloatType angle) const {
-    return XYZVector(vector.Z()*sin(angle) + vector.X()*cos(angle),
-                     vector.Y(),
-                     vector.Z()*cos(angle) - vector.X()*sin(angle));
-  }
-};
-
-template<class Coords, class FloatType>
-struct RotateZ {};
-
-template<class FloatType>
-struct RotateZ<XYZVector, FloatType> {
-  XYZVector operator()(const XYZVector& vector, FloatType angle) const {
-    return XYZVector(vector.X()*cos(angle) - vector.Y()*sin(angle),
-                     vector.X()*sin(angle) + vector.Y()*cos(angle),
-                     vector.Z());
-  }
-};
-
+// Primary templates (required before specialization)
 template<class Coords> Coords crossProduct(const Coords& v1, const Coords& v2);
-
 template<class Coords> Coords unitVector(const Coords& vector);
 
 template<int NumSides, class Coords, class Random, class FloatType = double>
@@ -68,17 +34,22 @@ protected:
   FloatType area_;
   Coords v_[NumSides]; // vertices of the polygon
   size_t allocated_;
+  ROOT::Math::Rotation3D rotation_; // Underlying rotation state
+  
   virtual void computeProperties() = 0;
   mutable Coords center_, normal_;
   mutable bool centerDirty_, normalDirty_;
   void setGeomDirty(bool dirty) { centerDirty_ = normalDirty_ = dirty; }
+
 public:
-  AbstractPolygon() : allocated_(0), centerDirty_(true), normalDirty_(true) {}
-  AbstractPolygon(const Coords& vertex): allocated_(0), centerDirty_(true), normalDirty_(true) { *this << vertex; }
+  AbstractPolygon() : allocated_(0), rotation_(), centerDirty_(true), normalDirty_(true) {}
+  AbstractPolygon(const Coords& vertex): allocated_(0), rotation_(), centerDirty_(true), normalDirty_(true) { *this << vertex; }
   virtual ~AbstractPolygon() {};
+  
   virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const Coords& vertex);
   virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const std::vector<Coords>& vertices);
   virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator()(const Coords& vertex) { *this << vertex; return *this; }
+  
   const Coords* getVertices() const;
   const Coords* begin() const { return v_; }
   const Coords* end() const { return (v_+NumSides); }
@@ -91,8 +62,11 @@ public:
 
   const Coords& getCenter() const;
   const Coords& getNormal() const; 
+  const ROOT::Math::Rotation3D& getRotation() const { return rotation_; } // Access the accumulated rotation
+  
   AbstractPolygon<NumSides, Coords, Random, FloatType>& translate(const Coords& vector); 
   AbstractPolygon<NumSides, Coords, Random, FloatType>& mirror(const Coords& vector); 
+  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotate(const ROOT::Math::Rotation3D& rot);
   AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateX(FloatType angle);
   AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateY(FloatType angle);
   AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateZ(FloatType angle);
@@ -118,7 +92,6 @@ double AbstractPolygon<NumSides, Coords, Random, FloatType>::getDoubleArea() con
   return area_;
 }
 
-
 template<int NumSides, class Coords, class Random, class FloatType> 
 const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getCenter() const {
   if (centerDirty_) {
@@ -128,7 +101,6 @@ const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getCenter() 
   return center_;
 }
 
-
 template<int NumSides, class Coords, class Random, class FloatType> 
 const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getNormal() const {
   if (normalDirty_) {
@@ -137,8 +109,6 @@ const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getNormal() 
   }
   return normal_;
 }
-
-
 
 template<int NumSides, class Coords, class Random, class FloatType>
 AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::translate(const Coords& vector) {
@@ -157,24 +127,26 @@ AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, 
 }
 
 template<int NumSides, class Coords, class Random, class FloatType>
-AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateX(FloatType angle) {
-  std::transform(&v_[0], &v_[NumSides], &v_[0], [&](const Coords& coord) { return RotateX<Coords, FloatType>()(coord, angle); });
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotate(const ROOT::Math::Rotation3D& rot) {
+  std::transform(&v_[0], &v_[NumSides], &v_[0], [&](const Coords& coord) { return rot(coord); });
+  rotation_ = rot * rotation_; // Track total accumulation
   setGeomDirty(true);
   return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateX(FloatType angle) {
+  return rotate(ROOT::Math::Rotation3D(ROOT::Math::RotationX(angle)));
 }
 
 template<int NumSides, class Coords, class Random, class FloatType>
 AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateY(FloatType angle) {
-  std::transform(&v_[0], &v_[NumSides], &v_[0], [&](const Coords& coord) { return RotateY<Coords, FloatType>()(coord, angle); });
-  setGeomDirty(true);
-  return *this;
+  return rotate(ROOT::Math::Rotation3D(ROOT::Math::RotationY(angle)));
 }
 
 template<int NumSides, class Coords, class Random, class FloatType>
 AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateZ(FloatType angle) {
-  std::transform(&v_[0], &v_[NumSides], &v_[0], [&](const Coords& coord) { return RotateZ<Coords, FloatType>()(coord, angle); });
-  setGeomDirty(true);
-  return *this;
+  return rotate(ROOT::Math::Rotation3D(ROOT::Math::RotationZ(angle)));
 }
 
 template<int NumSides, class Coords, class Random, class FloatType> 
@@ -191,8 +163,6 @@ AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, 
   }
   return *this;
 }
-
-
 
 template<int NumSides>
 class Polygon3d : public AbstractPolygon<NumSides, ROOT::Math::XYZVector, TRandom> { // no checks are made on the convexity, but the algorithms in the class only work for convex polygons, so beware!
@@ -222,8 +192,6 @@ public:
 };
 
 typedef Polygon3d<3> Triangle3d;
-
-
 
 template<int NumSides>
 bool Polygon3d<NumSides>::isPointInside(const XYZVector& p) const {
@@ -272,12 +240,10 @@ XYZVector Polygon3d<NumSides>::generateRandomPoint(TRandom* die) const {
   return it->generateRandomPoint(die);
 }
 
-
 template<int NumSides>
 inline const std::multiset<Triangle3d, PolygonLess<Triangle3d> >& Polygon3d<NumSides>::getTriangulation() const {
   return trianglesByArea_;
 }
-
 
 inline void Triangle3d::computeProperties() {
    this->area_ = sqrt((this->v_[1] - this->v_[0]).Cross(this->v_[2] - this->v_[0]).Mag2());
@@ -301,9 +267,4 @@ inline XYZVector Triangle3d::generateRandomPoint(TRandom* die) const {
   return this->v_[0] + a*(this->v_[1]-this->v_[0]) + b*(this->v_[2]-this->v_[0]); // seriously C++??? you've been around for a while now, time to fix this horrid syntax??
 }
 
-
-
 #endif
-
-
-
