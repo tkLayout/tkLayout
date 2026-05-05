@@ -9374,7 +9374,7 @@ std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* my
 
   // Header line
   dtcsToModulesCsv << "IsPlusZEnd/O,IsPlusXSide/O,DTC_Id/I,DTC_CMSSW_Id/U,MFB/I,"
-                      "LpGBT_Id/C,LpGBT_CMSSW_IdPerDTC/U,N_ELinks_Per_Module/I,"
+                      "LpGBT_Id/C,LpGBT_CMSSW_IdPerDTC/U,N_ELinks/I,"
                       "Power_Chain/I,Power_Chain_Type/C,Is_LongBarrel/O,"
                       "Module_DetId/i,Sensor_DetId/i,Module_Section/C,Module_Layer/I,Module_Ring/I,"
                       "Module_phi_deg/D,N_Chips_Per_Module/I,N_Channels_Per_Module/I\n"
@@ -9431,7 +9431,7 @@ std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* my
         const PowerChain* myPowerChain = myGBT->getPowerChain();
         if (!myPowerChain) {
           dtcsToModulesCsv << gbtStr 
-                           << myGBT->numELinksPerModule() << "," 
+                           << myGBT->numELinks() << "," 
                            << PAD_NO_POWERCHAIN;
           continue;
         }
@@ -9446,7 +9446,7 @@ std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* my
         const auto& myModules = myGBT->modules();
         if (myModules.empty()) {
           dtcsToModulesCsv << gbtStr 
-                           << myGBT->numELinksPerModule() << "," 
+                           << myGBT->numELinks() << "," 
                            << powerStr 
                            << PAD_NO_MODULES;
           continue;
@@ -9454,13 +9454,13 @@ std::string Vizard::createInnerTrackerDTCsToModulesCsv(const InnerCablingMap* my
 
         // Evaluate module type and format specific data
         for (const auto& m : myModules) {
-          // Separate logic for the L1 TBPX
-          const int numElinks = (m->moduleSubType() == 1) ? myGBT->numELinksPerModule() / 2 
-                                                          : myGBT->numELinksPerModule();
+          // Generalization logic for the TBPX-L1
+          const int numElinksPerModule = m->numELinks();
+          const int numElinksPerDetId = numElinksPerModule / m->numSensors();
 
           for (const auto& s : m->sensors()) {
             dtcsToModulesCsv << gbtStr 
-                             << numElinks << "," 
+                             << numElinksPerDetId << "," 
                              << powerStr
                              << m->myDetId() << ","
                              << s.myDetId() << ","
