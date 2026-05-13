@@ -332,11 +332,11 @@ public:
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
-    if (newFlip && numSensors() > 1) {
-      sensors_.front().innerOuter(SensorPosition::UPPER);
-      sensors_.back().innerOuter(SensorPosition::LOWER);
-    }
-    return decorated().flipped(newFlip);
+    bool ret = decorated().flipped(newFlip);
+
+    clearSensorPolys();
+
+    return ret;
   } 
   ModuleShape shape() const { return decorated().shape(); }
   ////////
