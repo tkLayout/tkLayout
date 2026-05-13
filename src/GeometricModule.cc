@@ -153,11 +153,13 @@ void RectangularModule::build() {
       iContourPoint++;
     }
 
-    float l = length(), w = width();
-    basePoly_ << XYZVector( l/2, w/2, 0)
-              << XYZVector(-l/2, w/2, 0)
-              << XYZVector(-l/2,-w/2, 0)
-              << XYZVector( l/2,-w/2, 0);
+    double w_2 = 0.5 * width();
+    double l_2 = 0.5 * length();
+    basePoly_ << XYZVector( w_2,  l_2, 0.)
+              << XYZVector(-w_2,  l_2, 0.)
+              << XYZVector(-w_2, -l_2, 0.)
+              << XYZVector( w_2, -l_2, 0.);
+
     cleanup();
     builtok(true);
   }
