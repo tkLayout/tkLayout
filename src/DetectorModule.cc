@@ -874,16 +874,15 @@ const int DetectorModule::innerDTCPlotColor() const {
 void BarrelModule::build() {
   try {
     DetectorModule::build();
-    //myModuleCap_->setCategory(MaterialProperties::b_mod);
-    decorated().rotateY(M_PI/2);
 
-    rAxis_ = normal();
+    rAxis_ = XYZVector(1., 0., 0.);
 
-    // skew
-    decorated().rotateZ(skewAngle());    
-    
+    // Initial global orientation with skew
+    rotateY(M_PI_2 - skewAngle());
+
     // tilt
     tiltAngle_ = 0.;
+
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::BARREL); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
@@ -895,11 +894,15 @@ void BarrelModule::build() {
 void EndcapModule::build() {
   try {
     DetectorModule::build();
-    //myModuleCap_->setCategory(MaterialProperties::e_mod);
-    rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
+
+    // Initial global position
+    rotateZ(M_PI_2);
+
+    rAxis_ = XYZVector(1., 0., 0.);
 
     // tilt
-    tiltAngle_ = M_PI/2.;
+    tiltAngle_ = M_PI_2;
+
     for (auto& s : sensors_) { s.subdet(ModuleSubdetector::ENDCAP); }
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }

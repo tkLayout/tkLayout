@@ -101,36 +101,44 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
 
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->build();
-    mod->translate(XYZVector(modTranslateX, 0, 0));
     mod->myid(i+1);
 
-    double yawAngle = 0;
-    bool doYaw = false;
+    // Execute transformations around the module's local axes
+    const auto& center = mod->center();
+    mod->translate(-center);
+
+    const bool shouldFlip = (!isRingOn4Dees() 
+                             ? (parity < 0)                // Two-sided Dees: modules on small |Z| side are flipped
+                             : isSmallerAbsZRingInDisk()); // Four Dees: all modules in the inner ring are flipped
+    mod->flipped(shouldFlip);
+
+    // Calculate yaw angle
+    double yawAngle = 0.;
     if (mod->yawAngleFromConfig.state()) {
-      doYaw = true;
       mod->notInRegularRing();
       yawAngle = mod->yawAngleFromConfig();
     }
     if (mod->yawFlip()) {
-      doYaw = true;
       yawAngle += M_PI;
     }
-
-    if (doYaw) {
-      double rho_center = mod->center().Rho();
-
-      mod->translateR(-rho_center);
+    // Apply yaw
+    if (yawAngle != 0.) {
       mod->yaw(yawAngle);
+    }
 
-      if (mod->manualRhoCentre() > 0)
-        mod->translateR(mod->manualRhoCentre());
-      else
-        mod->translateR(rho_center);
+    // Restore original position and move away from the beamline
+    if ((yawAngle != 0.) && (mod->manualRhoCentre() > 0.)) {
+      mod->translateR(mod->manualRhoCentre());
+    }
+    else {
+      mod->translate(center);
+      mod->translate(XYZVector(modTranslateX, 0., 0.));
     }
 
     if (mod->manualPhiCenter.state() && mod->manualPhiCenterDeg.state())
       logWARNING("A module was set both manualPhiCenter and manualPhiCenterDeg. Only the former will be considered");
 
+    // Shift around phi (global Z)
     double nominalZRot = 0.;
     if (mod->manualPhiCenter.state()) {
       nominalZRot = mod->manualPhiCenter();
@@ -152,16 +160,11 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
       if (nominalZRot >= M_PI)
         nominalZRot += diffPhi;
     }
-
     mod->rotateZ(nominalZRot + zRotation());
+
     mod->translateZ(parity * smallDelta);
     mod->setIsSmallerAbsZModuleInRing(parity < 0);
 
-    const bool isFlipped = (!isRingOn4Dees() 
-                            ? (parity < 0)                // Two-sided Dees: modules on small |Z| side are flipped
-                            : isSmallerAbsZRingInDisk()); // Four Dees: all modules in the inner ring are flipped
-
-    mod->flipped(isFlipped);
     modules_.push_back(mod);
   }
 

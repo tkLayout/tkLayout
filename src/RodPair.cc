@@ -358,11 +358,23 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
       mod->myid(i+1);
     }
     mod->side(side);
-    mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
-    if (smallDelta() != 0) { mod->flipped(parity != 1); } // When smallDelta() != 0, the flip is alternated.
-    else { mod->flipped(!isPlusBigDeltaRod); } // When smallDelta() == 0, the flip only depends whether the rod is located at + BigDelta or at - BigDelta.
-    mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
-    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
+
+    // Execute transformations around the module's local axes
+    const auto& center = mod->center();
+    mod->translate(-center);
+
+    const bool shouldFlip = (smallDelta() != 0)
+                             ? (parity != 1)        // When smallDelta() != 0, the flip is alternated
+                             : !isPlusBigDeltaRod;  // Otherwise, the flip depends whether the rod is located at + or - BigDelta
+    mod->flipped(shouldFlip);
+    mod->rotateX(mod->isPixelModule() ? -M_PI_2 : M_PI_2);
+
+    const double rOffset = (parity > 0) ? smallDelta() : -smallDelta();
+    mod->translateR(rOffset);
+
+    const double zOffset = (direction == BuildDir::RIGHT) ? (mod->length() * 0.5) : (-mod->length() * 0.5);
+    mod->translateZ(posList[i] + zOffset);
+
     modules.push_back(mod);
   }
 }
@@ -471,15 +483,13 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < (int)tmspecs.size(); i++, ++it) {
     bool isTiltedModule = (tmspecs[i].gamma == 0);
-    //std::cout << "i = " << i << std::endl;
-    //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
-    //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
     mod->store(propertyTree());
     if (mod->yawFlip() && (side==1)) mod->rotateXModCentre(M_PI);
     if (mod->yawFlipNeg() && (side==-1)) mod->rotateXModCentre(M_PI);
+    mod->rotateXModCentre(M_PI_2);
     // Use the yawFlipRods only for the tilted part
     if (isTiltedModule)
       for (auto& iRod : mod->yawFlipRods)
