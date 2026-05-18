@@ -73,22 +73,6 @@ namespace CoordinateOperations {
     return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
   }
 
-  template<class Polygon> Polygon* computeTranslatedPolygon(const Polygon& basePolygon, double normalOffset) {
-    Polygon* p = new Polygon(basePolygon);
-    p->translate(p->getNormal() * normalOffset);
-    return p;
-  }
-
-  template<class Polygon> Polygon* computeResizedPolygon(const Polygon& basePolygon, const XYZVector& axis, double scale) {
-    Polygon* p = new Polygon();
-    const XYZVector& center = basePolygon.getCenter();
-    for (const XYZVector* vtx = basePolygon.begin(); vtx != basePolygon.end(); ++vtx) {
-      XYZVector shift = ROOT::Math::VectorUtil::ProjVector(center - *vtx, axis) * (1. - scale);
-      *p << (*vtx + shift);
-    }
-    return p;
-  }
-
   /**
    * Compute the polygon whose vertices are all the middles of the edges of the polygon sepcified as a parameter.
    */
