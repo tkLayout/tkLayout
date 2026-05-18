@@ -7387,6 +7387,8 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 
 
   void Vizard::drawAxesAndNameXY(const Module* aModule, double yScale, bool endcap=true) {
+    constexpr double vizEpsilon = 1e-12; // Floating-point rounding guard
+
     const auto& locX = aModule->getLocalX();
     const auto& locY = aModule->getLocalY();
     // Z axis
@@ -7402,12 +7404,8 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     TArrow* xArrow = new TArrow(center.X(), center.Y(),
                                 center.X() + arrow_length_x * locX.X(), center.Y() + arrow_length_x * locX.Y(),
                                 arrow_size, arrow_option);
-    TArrow* yArrow = new TArrow(center.X(), center.Y(),
-                                center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
-                                arrow_size, arrow_option);
-    TArrow* zArrow = new TArrow(center.X(), center.Y(),
-                                center.X() + arrow_length_x * locZ.X(), center.Y() + arrow_length_x * locZ.Y(),
-                                arrow_size, arrow_option);
+    TArrow* yArrow = nullptr;
+    TArrow* zArrow = nullptr;
 
 #ifdef only_plot_plank_modules_facing_outwards
     TVector3 startZ(center.X(), center.Y(), center.Z());
@@ -7421,10 +7419,16 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
     xArrow->SetFillColor(kRed);
     xArrow->Draw();
     if (endcap) {
+      yArrow = new TArrow(center.X(), center.Y(),
+                          center.X() + arrow_length_y * locY.X(), center.Y() + arrow_length_y * locY.Y(),
+                          arrow_size, arrow_option);
       yArrow->SetLineColor(kBlue);
       yArrow->SetFillColor(kBlue);
       yArrow->Draw();
     } else {
+      zArrow = new TArrow(center.X(), center.Y(),
+                          center.X() + arrow_length_x * locZ.X(), center.Y() + arrow_length_x * locZ.Y(),
+                          arrow_size, arrow_option);
       zArrow->SetLineColor(kGreen+2);
       zArrow->SetFillColor(kGreen+2);
       zArrow->Draw();
@@ -7432,9 +7436,9 @@ void Vizard::drawArrowCross(double x, double y,const TVector3& locX,const TVecto
 
     // Z axis symbol
     const double zSymbolSize = std::max(arrow_length_x, arrow_length_y) / 5;
-    if (locZ.Z() > 0) {
+    if (locZ.Z() > vizEpsilon) {
       drawArrowDot(center.X(), center.Y(), zSymbolSize, kGreen + 2);
-    } else if (locZ.Z() < 0) {
+    } else if (locZ.Z() < -vizEpsilon) {
       drawArrowCross(center.X(), center.Y(), locX, locY, zSymbolSize, kGreen + 2);
     }
 
