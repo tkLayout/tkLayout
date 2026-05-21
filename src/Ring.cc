@@ -104,7 +104,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     mod->myid(i+1);
 
     // Execute transformations around the module's local axes
-    const auto& center = mod->center();
+    auto center = mod->center();
     mod->translate(-center);
 
     const bool shouldFlip = (!isRingOn4Dees() 
@@ -127,13 +127,12 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     }
 
     // Restore original position and move away from the beamline
-    if ((yawAngle != 0.) && (mod->manualRhoCentre() > 0.)) {
-      mod->translateR(mod->manualRhoCentre());
+    center += XYZVector(modTranslateX, 0., 0.);
+    // For irregular rings, the module centre is shifted
+    if (mod->manualRhoCentre() > 0.) {
+      center += center.Unit() * (mod->manualRhoCentre() - center.Rho());
     }
-    else {
-      mod->translate(center);
-      mod->translate(XYZVector(modTranslateX, 0., 0.));
-    }
+    mod->translate(center);
 
     if (mod->manualPhiCenter.state() && mod->manualPhiCenterDeg.state())
       logWARNING("A module was set both manualPhiCenter and manualPhiCenterDeg. Only the former will be considered");
