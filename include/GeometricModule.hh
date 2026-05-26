@@ -38,7 +38,8 @@ class GeometricModule : public ModuleDecorable {
 protected:
   int numHits_ = 0;
   bool flipped_ = false;
-  int tiltAngle_ = 0., skewAngle_ = 0.;
+  double tiltAngle_ = 0.;
+  double skewAngle_ = 0.;
   double zrotAngle_ = 0.;
   Polygon3d<4> basePoly_;
   std::vector<XYZVector> contour_;
