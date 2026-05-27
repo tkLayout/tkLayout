@@ -173,7 +173,6 @@ public:
   Polygon3d(const ROOT::Math::XYZVector& vertex) : AbstractPolygon<NumSides, ROOT::Math::XYZVector, TRandom>(vertex) {}
   const TriangleSet& getTriangulation() const;
   bool isPointInside(const ROOT::Math::XYZVector& p) const;
-  bool isLineIntersecting(const XYZVector& orig, const XYZVector& dir) const;
   bool isLineIntersecting(const XYZVector& orig, const XYZVector& dir, XYZVector& intersection) const;
   ROOT::Math::XYZVector generateRandomPoint(TRandom* die) const;
 };
@@ -205,10 +204,22 @@ bool Polygon3d<NumSides>::isPointInside(const XYZVector& p) const {
 
 template<int NumSides>
 bool Polygon3d<NumSides>::isLineIntersecting(const XYZVector& orig, const XYZVector& dir, XYZVector& intersection) const {
-  double normOrig = this->getNormal().Dot(orig);
-  double normDir = this->getNormal().Dot(dir);
-  double d = this->getCenter().Dot(this->getNormal());
-  intersection = orig + (((d - normOrig)/normDir) * dir); // TODO: slightly inefficient here: we do not need to go 3D and then 2D again...
+  const auto normal = this->getNormal();
+  const auto center = this->getCenter();
+
+  // If normDir ~= 0, the polygon is parallel to the line, so no intersection
+  const double normDir = normal.Dot(dir);
+  if (std::fabs(normDir) < 1e-3) return false;
+
+  const double normOrig = normal.Dot(orig);
+  const double d = center.Dot(normal);
+
+  // If t < 0, the line is pointing away from the plane, so no intersection
+  const double t = (d - normOrig) / normDir;
+  if (t < 0.) return false;
+
+  intersection = orig + t * dir;
+
   return isPointInside(intersection);
 }
 
