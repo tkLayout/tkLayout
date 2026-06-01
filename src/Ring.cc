@@ -107,6 +107,9 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     auto center = mod->center();
     mod->translate(-center);
 
+    // Initial global position
+    mod->rotateZ(M_PI_2);
+
     const bool shouldFlip = (!isRingOn4Dees() 
                              ? (parity < 0)                // Two-sided Dees: modules on small |Z| side are flipped
                              : isSmallerAbsZRingInDisk()); // Four Dees: all modules in the inner ring are flipped

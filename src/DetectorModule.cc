@@ -786,9 +786,6 @@ void BarrelModule::build() {
 
     rAxis_ = XYZVector(1., 0., 0.);
 
-    // Initial global orientation with skew
-    rotateY(M_PI_2 - skewAngle());
-
     // tilt
     tiltAngle_ = 0.;
 
@@ -804,10 +801,7 @@ void EndcapModule::build() {
   try {
     DetectorModule::build();
 
-    // Initial global position
-    rotateZ(M_PI_2);
-
-    rAxis_ = XYZVector(1., 0., 0.);
+    rAxis_ = XYZVector(0., -1., 0.);
 
     // tilt
     tiltAngle_ = M_PI_2;
