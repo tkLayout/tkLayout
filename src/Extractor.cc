@@ -9,9 +9,90 @@
 //#define __FLIPSENSORS_IN__
 
 #include <Extractor.hh>
+
 #include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <sstream>
+#include <array>
+#include <map>
+#include <vector>
 
 namespace insur {
+
+  // Helper function to calculate and store the yaw-adjusted rotation for barrel modules
+  static std::string getBarrelModuleRotation(std::map<std::string, Rotation>& r, bool isPixelTracker, bool isFlipped, double yaw) {
+    // If there is no yaw, fallback to the standard static tags
+    if (std::abs(yaw) < 1e-5) {
+        return (!isPixelTracker) ?
+               (isFlipped ? xml_OT_places_flipped_mod_in_rod : xml_OT_places_unflipped_mod_in_rod) :
+               (isFlipped ? xml_PX_places_flipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
+    }
+
+    // Define base vectors before applying yaw
+    std::array<double, 3> x_dir, y_dir, z_dir;
+    if (!isPixelTracker) {
+        if (!isFlipped) {
+            x_dir[0] = 0.0; x_dir[1] = 1.0; x_dir[2] = 0.0;
+            y_dir[0] = 0.0; y_dir[1] = 0.0; y_dir[2] = 1.0;
+            z_dir[0] = 1.0; z_dir[1] = 0.0; z_dir[2] = 0.0;
+        } else {
+            x_dir[0] = 0.0; x_dir[1] = -1.0; x_dir[2] = 0.0;
+            y_dir[0] = 0.0; y_dir[1] = 0.0;  y_dir[2] = 1.0;
+            z_dir[0] = -1.0; z_dir[1] = 0.0; z_dir[2] = 0.0;
+        }
+    } else {
+        if (!isFlipped) {
+            x_dir[0] = 0.0; x_dir[1] = -1.0; x_dir[2] = 0.0;
+            y_dir[0] = 0.0; y_dir[1] = 0.0;  y_dir[2] = -1.0;
+            z_dir[0] = 1.0; z_dir[1] = 0.0;  z_dir[2] = 0.0;
+        } else {
+            x_dir[0] = 0.0; x_dir[1] = 1.0;  x_dir[2] = 0.0;
+            y_dir[0] = 0.0; y_dir[1] = 0.0;  y_dir[2] = -1.0;
+            z_dir[0] = -1.0; z_dir[1] = 0.0; z_dir[2] = 0.0;
+        }
+    }
+
+    // Apply the yaw around the local Z axis
+    double cosY = std::cos(yaw);
+    double sinY = std::sin(yaw);
+
+    std::array<double, 3> nx_dir, ny_dir;
+    for (int i = 0; i < 3; ++i) {
+        nx_dir[i] = cosY * x_dir[i] + sinY * y_dir[i];
+        ny_dir[i] = -sinY * x_dir[i] + cosY * y_dir[i];
+    }
+
+    // Lambdas to convert Cartesian vectors back into CMSSW spherical coordinates
+    auto getTheta = [](const std::array<double, 3>& v) {
+        double z = v[2];
+        if (z > 1.0) z = 1.0;
+        if (z < -1.0) z = -1.0;
+        return std::acos(z) * (180.0 / M_PI);
+    };
+    auto getPhi = [](const std::array<double, 3>& v) {
+        double p = std::atan2(v[1], v[0]) * (180.0 / M_PI);
+        return (p < 0.0) ? p + 360.0 : p;
+    };
+
+    // Construct a unique rotation name 
+    std::ostringstream rotName;
+    rotName << (isPixelTracker ? "PX" : "OT")
+            << (isFlipped ? "_Flipped" : "_Unflipped")
+            << "_Yaw" << std::round(yaw * (180.0 / M_PI));
+    std::string name = rotName.str();
+
+    // Register rotation if it hasn't been generated yet
+    if (r.find(name) == r.end()) {
+        Rotation rot;
+        rot.name = name;
+        rot.thetax = getTheta(nx_dir); rot.phix = getPhi(nx_dir);
+        rot.thetay = getTheta(ny_dir); rot.phiy = getPhi(ny_dir);
+        rot.thetaz = getTheta(z_dir);  rot.phiz = getPhi(z_dir);
+        r.insert(std::make_pair(name, rot));
+    }
+    return name;
+  }
 
   //public
   /**
@@ -432,6 +513,11 @@ namespace insur {
     //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      if (lagg.getEndcapLayers()->at(layer - 1)->minZ() <= 0) {  // skip z- endcap layers
+		layer++;
+		continue;
+	  }
+
       std::set<int> ridx;
       double lrmin = std::numeric_limits<double>::max();
       double lrmax = 0;
@@ -840,9 +926,6 @@ namespace insur {
 	unflippedLadderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_unflipped; // e.g. OTLayer1RodUnflipped
       }
 
-      std::string places_unflipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_unflipped_mod_in_rod : xml_PX_places_unflipped_mod_in_rod);
-      std::string places_flipped_mod_in_rod = (!isPixelTracker ? xml_OT_places_flipped_mod_in_rod : xml_PX_places_flipped_mod_in_rod);
-
       double firstPhiRodMeanPhi = 0;
       double nextPhiRodMeanPhi = 0;
 
@@ -858,6 +941,33 @@ namespace insur {
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
 
+	  // Collect the irregular ring parameter arrays
+      std::map<int, std::vector<double>> phi_plus_one, phi_minus_one, phi_plus_two, phi_minus_two;
+      std::map<int, std::vector<double>> radius_plus_one, radius_minus_one, radius_plus_two, radius_minus_two;
+      std::map<int, std::vector<double>> yaw_plus_one, yaw_minus_one, yaw_plus_two, yaw_minus_two;
+
+      for (auto tmp_iiter = oiter->begin(); tmp_iiter != oiter->end(); tmp_iiter++) {
+        if (isTilted && tmp_iiter->getModule().tiltAngle() != 0) {
+          int modRing = tmp_iiter->getModule().uniRef().ring;
+          double phi = tmp_iiter->getModule().center().Phi() * (180. / M_PI);
+          double radius = tmp_iiter->getModule().center().Rho();
+          double yaw = tmp_iiter->getModule().yawAngle() * (180. / M_PI);
+
+          if (tmp_iiter->getModule().uniRef().phi % 2 == 1) {
+            if (tmp_iiter->getModule().uniRef().side > 0) {
+                phi_plus_one[modRing].push_back(phi); radius_plus_one[modRing].push_back(radius); yaw_plus_one[modRing].push_back(yaw);
+            } else {
+                phi_minus_one[modRing].push_back(phi); radius_minus_one[modRing].push_back(radius); yaw_minus_one[modRing].push_back(yaw);
+            }
+          } else {
+            if (tmp_iiter->getModule().uniRef().side > 0) {
+                phi_plus_two[modRing].push_back(phi); radius_plus_two[modRing].push_back(radius); yaw_plus_two[modRing].push_back(yaw);
+            } else {
+                phi_minus_two[modRing].push_back(phi); radius_minus_two[modRing].push_back(radius); yaw_minus_two[modRing].push_back(yaw);
+            }
+          }
+        }
+      }
 
       // LOOP ON MODULE CAPS 
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -1009,8 +1119,8 @@ namespace insur {
 	      pos.trans.dx = iiter->getModule().center().Rho() - firstPhiRodRadius;
 	      pos.trans.dz = iiter->getModule().center().Z();
 
-	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
-	      else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
+	      double yaw = iiter->getModule().yawAngle();
+		  pos.rotref = trackerXmlTags.nspace + ":" + getBarrelModuleRotation(r, isPixelTracker, iiter->getModule().flipped(), yaw);
 	      pos.copy = (!iiter->getModule().isTimingModule() ? 1 : timingModuleCopyNumber);
 	      if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_positive_z;
 	      p.push_back(pos);
@@ -1020,8 +1130,8 @@ namespace insur {
 		pos.trans.dx = partner->getModule().center().Rho() - firstPhiRodRadius;
 		pos.trans.dz = partner->getModule().center().Z();
 
-		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
-		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
+		double partnerYaw = partner->getModule().yawAngle();
+		pos.rotref = trackerXmlTags.nspace + ":" + getBarrelModuleRotation(r, isPixelTracker, partner->getModule().flipped(), partnerYaw);
 		pos.copy = (!iiter->getModule().isTimingModule() ? 2 : timingModuleCopyNumber);
 		if (iiter->getModule().isTimingModule()) pos.child_tag = childName + xml_negative_z;
 		p.push_back(pos);
@@ -1041,17 +1151,16 @@ namespace insur {
 		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
 		pos.trans.dx = iiter->getModule().center().Rho() - nextPhiRodRadius;
 		pos.trans.dz = iiter->getModule().center().Z();
-		if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
-		else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
+		double yaw = iiter->getModule().yawAngle();
+		pos.rotref = trackerXmlTags.nspace + ":" + getBarrelModuleRotation(r, isPixelTracker, iiter->getModule().flipped(), yaw);
 		p.push_back(pos);
 	      
 		// This is a copy of the BModule on -Z side
 		if (partner != oiter->end()) {
 		  pos.trans.dx = partner->getModule().center().Rho() - nextPhiRodRadius;
 		  pos.trans.dz = partner->getModule().center().Z();
-		  if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + places_unflipped_mod_in_rod; }
-		  else { pos.rotref = trackerXmlTags.nspace + ":" + places_flipped_mod_in_rod; }
-		  pos.copy = 2; 
+		  double partnerYaw = partner->getModule().yawAngle();
+		  pos.rotref = trackerXmlTags.nspace + ":" + getBarrelModuleRotation(r, isPixelTracker, partner->getModule().flipped(), partnerYaw);		  pos.copy = 2; 
 		  p.push_back(pos);
 		  pos.copy = 1;
 		}
@@ -2018,7 +2127,7 @@ namespace insur {
 	      //trspec.moduletypes.push_back(minfo_zero);
 	      
 	      // Tilted ring: first part to be stored
-	      alg.name = xml_trackerring_algo;
+	      alg.name = xml_trackerring_irregular_algo;
 	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
@@ -2043,11 +2152,24 @@ namespace insur {
 	      pconverter << rinfo.bw_flipped;
 	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	      pconverter.str("");
+
+		  // Module position and yaw in tilted rings
+          int ringIndex = ringinfo.first;
+          if (rinfo.isZPlus && phi_plus_one[ringIndex].size() > 0) {
+            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_plus_one[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_plus_one[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_plus_one[ringIndex]));
+          } else if (!rinfo.isZPlus && phi_minus_one[ringIndex].size() > 0) {
+            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_minus_one[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_minus_one[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_minus_one[ringIndex]));
+          }
+
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	      
 	      // Tilted ring: second part to be stored
-	      alg.name =  xml_trackerring_algo;
+	      alg.name = xml_trackerring_irregular_algo;
 	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
@@ -2072,6 +2194,18 @@ namespace insur {
 	      pconverter << rinfo.fw_flipped;
 	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	      pconverter.str("");
+
+		  // Module position and yaw in tilted rings
+          if (rinfo.isZPlus && phi_plus_two[ringIndex].size() > 0) {
+            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_plus_two[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_plus_two[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_plus_two[ringIndex]));
+          } else if (!rinfo.isZPlus && phi_minus_two[ringIndex].size() > 0) {
+            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_minus_two[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_minus_two[ringIndex]));
+            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_minus_two[ringIndex]));
+          }
+
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	    }
@@ -2257,8 +2391,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
@@ -2982,8 +3117,9 @@ namespace insur {
 	double diskZ = 0;
 	if (ringsIndexes.size() < 2) std::cout << "!!!!!!Disk with less than 2 rings, unexpected" << std::endl;
 	else {
-	  int firstRingIndex = *(ringsIndexes.begin());
-	  int secondRingIndex = *ringsIndexes.begin() + 1;
+	  auto it = ringsIndexes.begin();
+	  int firstRingIndex = *it;
+	  int secondRingIndex = (std::advance(it, 1), *it);
 	  diskZ = (ringzmin.at(firstRingIndex) + ringzmax.at(firstRingIndex) + ringzmin.at(secondRingIndex) + ringzmax.at(secondRingIndex)) / 4.;
 	}
 	
