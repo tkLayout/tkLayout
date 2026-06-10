@@ -2342,88 +2342,127 @@ namespace insur {
 	      trspec.partselectors.push_back(rinfo.name);
 	      //trspec.moduletypes.push_back(minfo_zero);
 	      
-	      // Tilted ring: first part to be stored
-	      alg.name = xml_trackerring_irregular_algo;
-	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
-	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
-	      pconverter.str(""); pconverter << (rinfo.modules / 2);
-	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter.str(""); pconverter << rinfo.startPhiAngle1 * 180. / M_PI << "*deg";
-	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter << rinfo.r1 << "*mm";
-	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));
-	      pconverter.str(""); pconverter << rinfo.isZPlus;
-	      alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	      pconverter.str("");
-	      pconverter.str(""); pconverter << rinfo.tiltAngle << "*deg";
-	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter.str(""); pconverter << rinfo.bw_flipped;
-	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	      pconverter.str("");
+	      // Lambda to generate and cache explicit tilted module rotations
+              auto registerTiltedModuleRotation = [&](double phi_deg, double yaw_deg, double tilt_deg, bool isZPlus, bool isFlipped) -> std::string {
+                  double norm_phi = std::fmod(phi_deg, 360.0);
+                  if (norm_phi < 0.0) norm_phi += 360.0;
+                  
+                  std::ostringstream rotName;
+                  rotName << "TMod_Phi" << static_cast<int>(std::round(norm_phi * 10.0))
+                          << "_Yaw"   << static_cast<int>(std::round(yaw_deg * 10.0))
+                          << "_Tilt"  << static_cast<int>(std::round(tilt_deg * 10.0))
+                          << (isZPlus ? "_ZPlus" : "_ZMinus")
+                          << (isFlipped ? "_Flipped" : "");
+                  
+                  const std::string name = rotName.str();
+                  if (r.find(name) == r.end()) {
+                      double phi = norm_phi * M_PI / 180.0;
+                      double yaw = yaw_deg * M_PI / 180.0;
+                      double tilt = tilt_deg * M_PI / 180.0;
 
-		  // Module position and yaw in tilted rings
-          int ringIndex = ringinfo.first;
-          if (rinfo.isZPlus && phi_plus_one[ringIndex].size() > 0) {
-            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_plus_one[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_plus_one[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_plus_one[ringIndex]));
-          } else if (!rinfo.isZPlus && phi_minus_one[ringIndex].size() > 0) {
-            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_minus_one[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_minus_one[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_minus_one[ringIndex]));
-          }
+                      // Matrix representation: columns as {x, y, z}
+                      using Mat3 = std::array<std::array<double, 3>, 3>;
+                      auto mult = [](const Mat3& A, const Mat3& B) -> Mat3 {
+                          Mat3 C = {};
+                          for(int col = 0; col < 3; ++col) {
+                              for(int row = 0; row < 3; ++row) {
+                                  C[col][row] = A[0][row]*B[col][0] + A[1][row]*B[col][1] + A[2][row]*B[col][2];
+                              }
+                          }
+                          return C;
+                      };
 
-	      a.push_back(alg);
-	      alg.parameters.clear();
-	      
-	      // Tilted ring: second part to be stored
-	      alg.name = xml_trackerring_irregular_algo;
-	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
-	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
-	      pconverter.str(""); pconverter << (rinfo.modules / 2);
-	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter.str(""); pconverter << rinfo.startPhiAngle2 * 180. / M_PI << "*deg";
-	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter << rinfo.r2 << "*mm";
-	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z2 - rinfo.z1) / 2.0));
-	      pconverter.str(""); pconverter << rinfo.isZPlus;
-	      alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	      pconverter.str("");
-	      pconverter.str(""); pconverter << rinfo.tiltAngle << "*deg";
-	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter.str(""); pconverter << rinfo.fw_flipped;
-	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	      pconverter.str("");
+                      Mat3 rYaw = {{{std::cos(yaw), std::sin(yaw), 0}, {-std::sin(yaw), std::cos(yaw), 0}, {0, 0, 1}}};
+                      Mat3 rFlip = {{{-1, 0, 0}, {0, 1, 0}, {0, 0, -1}}};
+                      
+                      Mat3 rTilt = {};
+                      if (isZPlus) {
+                          rTilt = {{{0, 1, 0}, {-std::sin(tilt), 0, std::cos(tilt)}, {std::cos(tilt), 0, std::sin(tilt)}}};
+                      } else {
+                          rTilt = {{{0, 1, 0}, {std::sin(tilt), 0, std::cos(tilt)}, {std::cos(tilt), 0, -std::sin(tilt)}}};
+                      }
+                      
+                      Mat3 rPhi = {{{std::cos(phi), std::sin(phi), 0}, {-std::sin(phi), std::cos(phi), 0}, {0, 0, 1}}};
 
-		  // Module position and yaw in tilted rings
-          if (rinfo.isZPlus && phi_plus_two[ringIndex].size() > 0) {
-            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_plus_two[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_plus_two[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_plus_two[ringIndex]));
-          } else if (!rinfo.isZPlus && phi_minus_two[ringIndex].size() > 0) {
-            alg.parameters.push_back(arbitraryLengthVector("phiAngleValues", phi_minus_two[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("yawAngleValues", yaw_minus_two[ringIndex]));
-            alg.parameters.push_back(arbitraryLengthVector("radiusValues", radius_minus_two[ringIndex]));
-          }
+                      // Compute exact CMSSW rotation: globalRot = R_phi * R_tilt * (isFlipped ? R_flip : I) * R_yaw
+                      Mat3 tiltCombined = isFlipped ? mult(rTilt, rFlip) : rTilt;
+                      Mat3 globalRotMat = mult(mult(rPhi, tiltCombined), rYaw);
 
-	      a.push_back(alg);
-	      alg.parameters.clear();
+                      auto getTheta = [](const std::array<double, 3>& v) {
+                          double z = v[2];
+                          if (z > 1.0) z = 1.;
+						  if (z < -1.0) z = -1.0;
+                          return std::acos(z) * 180.0 / M_PI;
+                      };
+                      auto getPhi = [](const std::array<double, 3>& v) {
+                          double p = std::atan2(v[1], v[0]) * 180.0 / M_PI;
+                          return (p < 0.0) ? p + 360.0 : p;
+                      };
+
+                      Rotation rot;
+                      rot.name = name;
+                      rot.thetax = getTheta(globalRotMat[0]); rot.phix = getPhi(globalRotMat[0]);
+                      rot.thetay = getTheta(globalRotMat[1]); rot.phiy = getPhi(globalRotMat[1]);
+                      rot.thetaz = getTheta(globalRotMat[2]); rot.phiz = getPhi(globalRotMat[2]);
+                      
+                      r.insert(std::make_pair(name, rot));
+                  }
+                  return name;
+              };
+
+              // Lambda to emit 1-entry XYZPosAlgo blocks for a tilted ring surface
+              auto emitTiltedModulePlacement = [&](int startCopyNo, double localZOffset, bool isZPlus, bool isFlipped,
+                                                   const std::vector<double>& phis,
+                                                   const std::vector<double>& radiuses,
+                                                   const std::vector<double>& yaws) {
+                  for (size_t i = 0; i < phis.size(); ++i) {
+                      double phi_rad = phis[i] * M_PI / 180.0;
+                      double rad = radiuses[i];
+                      double x = rad * std::cos(phi_rad);
+                      double y = rad * std::sin(phi_rad);
+                      double z = localZOffset;
+
+                      std::string rotName = registerTiltedModuleRotation(phis[i], yaws[i], rinfo.tiltAngle, isZPlus, isFlipped);
+                      std::string rotEntry = trackerXmlTags.nspace + ":" + rotName;
+
+                      alg.name = xml_xyzpos_algo;
+                      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
+                      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
+
+                      pconverter.str(""); pconverter << (startCopyNo + i * 2);
+                      alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+                      pconverter.str(""); // System-wide reset
+                      alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+
+                      alg.parameters.push_back(arbitraryLengthVector("XPositions", std::vector<double>{x}));
+                      alg.parameters.push_back(arbitraryLengthVector("YPositions", std::vector<double>{y}));
+                      alg.parameters.push_back(arbitraryLengthVector("ZPositions", std::vector<double>{z}));
+                      alg.parameters.push_back(arbitraryLengthStringVector("Rotations", std::vector<std::string>{rotEntry}));
+
+                      a.push_back(alg);
+                      alg.parameters.clear();
+                  }
+              };
+
+              int ringIndex = ringinfo.first;
+              
+              // Tilted ring: first part (Surface 1)
+              if (rinfo.isZPlus && phi_plus_one[ringIndex].size() > 0) {
+                  emitTiltedModulePlacement(1, (rinfo.z1 - rinfo.z2) / 2.0, rinfo.isZPlus, rinfo.bw_flipped,
+                                            phi_plus_one[ringIndex], radius_plus_one[ringIndex], yaw_plus_one[ringIndex]);
+              } else if (!rinfo.isZPlus && phi_minus_one[ringIndex].size() > 0) {
+                  emitTiltedModulePlacement(1, (rinfo.z1 - rinfo.z2) / 2.0, rinfo.isZPlus, rinfo.bw_flipped,
+                                            phi_minus_one[ringIndex], radius_minus_one[ringIndex], yaw_minus_one[ringIndex]);
+              }
+
+              // Tilted ring: second part (Surface 2)
+              if (rinfo.isZPlus && phi_plus_two[ringIndex].size() > 0) {
+                  emitTiltedModulePlacement(2, (rinfo.z2 - rinfo.z1) / 2.0, rinfo.isZPlus, rinfo.fw_flipped,
+                                            phi_plus_two[ringIndex], radius_plus_two[ringIndex], yaw_plus_two[ringIndex]);
+              } else if (!rinfo.isZPlus && phi_minus_two[ringIndex].size() > 0) {
+                  emitTiltedModulePlacement(2, (rinfo.z2 - rinfo.z1) / 2.0, rinfo.isZPlus, rinfo.fw_flipped,
+                                            phi_minus_two[ringIndex], radius_minus_two[ringIndex], yaw_minus_two[ringIndex]);
+              }
 	    }
 	  }
 	}
