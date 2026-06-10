@@ -139,6 +139,7 @@ namespace insur {
     std::string numericParam(std::string name, std::string value);
     std::string vectorParam(double x, double y, double z);
     std::string arbitraryLengthVector(std::string name, std::vector<double> invec);
+    std::string arbitraryLengthStringVector(std::string name, std::vector<std::string> invec);
     double compositeDensity(ModuleCap& mc, bool nosensors = false);
     double compositeDensity(InactiveElement& ie);
     double fromRim(double r, double w);
