@@ -926,9 +926,6 @@ namespace insur {
 	unflippedLadderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_unflipped; // e.g. OTLayer1RodUnflipped
       }
 
-      double firstPhiRodMeanPhi = 0;
-      double nextPhiRodMeanPhi = 0;
-
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
       int timingModuleCopyNumber = 0;
@@ -1129,9 +1126,6 @@ namespace insur {
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {
-
-	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
-
             std::ostringstream ringname;
 	    ringname << lname.str() << xml_ring << modRing;
 
@@ -1242,7 +1236,6 @@ namespace insur {
 
 	  if (iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
-	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + unflippedLadderName.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
@@ -1854,10 +1847,6 @@ namespace insur {
 
       // rods in layer algorithm(s)
 
-      // Get inner / outer ladders radii
-      const double innerLadderCenterRadius = MIN(firstPhiRodRadius, nextPhiRodRadius);  // inner radius
-      const double outerLadderCenterRadius = MAX(firstPhiRodRadius, nextPhiRodRadius); // outer radius
-
       // OUTER TRACKER
       if (!isPixelTracker) {
 
@@ -1918,7 +1907,6 @@ namespace insur {
         } // end !isTilted XYZPosAlgo path
 
         // TILTED OT LAYERS: flat-part rods via DDTrackerXYZPosAlgo (per-rod blocks).
-        // Falls back to DDTrackerPhiAltAlgo only when no flat-part modules were found.
         else if (isTilted) {
           if (!otRodPlacementByPhiIdx.empty()) {
           for (const auto& [phiIdx, data] : otRodPlacementByPhiIdx) {
@@ -1944,95 +1932,7 @@ namespace insur {
             a.push_back(alg);
             alg.parameters.clear();
           }
-          } else { // fallback: no flat-part modules found, keep PhiAltAlgo
-          pconverter.str("");  // clear any residual state from prior loops
-          if (!hasPhiForbiddenRanges) {
-            alg.name = xml_phialt_algo;
-            alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-            pconverter.str(""); pconverter << trackerXmlTags.nspace + ":" + ladderName.str();
-            alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
-            const bool isFirstPhiRodAtInnerRadius = (fabs(firstPhiRodRadius - innerLadderCenterRadius) < xml_epsilon);
-            const double algoStartPhi = (isFirstPhiRodAtInnerRadius ? firstPhiRodMeanPhi : nextPhiRodMeanPhi);
-            pconverter.str("");
-            pconverter << algoStartPhi * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter.str(""); pconverter << innerLadderCenterRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-            pconverter.str("");
-            pconverter << outerLadderCenterRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-            pconverter.str(""); pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
-            alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-            a.push_back(alg);
-            alg.parameters.clear();
-          } else {
-            int numRods = lagg.getBarrelLayers()->at(layer - 1)->numRods();
-            int forbiddenPhiUpperAIndex = numRods / 2;
-            int forbiddenPhiLowerBIndex = forbiddenPhiUpperAIndex + 1;
-            alg.name = xml_phialt_algo;
-            alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-            pconverter.str(""); pconverter << trackerXmlTags.nspace + ":" + ladderName.str();
-            alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
-            pconverter.str("");
-            pconverter << phiForbiddenRanges.at(1) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << firstPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-            pconverter.str("");
-            pconverter << nextPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-            pconverter.str(""); pconverter << numRods / 2;
-            alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-            a.push_back(alg);
-            alg.parameters.clear();
-            alg.name = xml_phialt_algo;
-            alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-            pconverter.str("");
-            pconverter << trackerXmlTags.nspace + ":" + ladderName.str();
-            alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
-            pconverter.str("");
-            pconverter << phiForbiddenRanges.at(forbiddenPhiLowerBIndex) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << (phiForbiddenRanges.at(numRods) - phiForbiddenRanges.at(forbiddenPhiLowerBIndex)) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << firstPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-            pconverter.str("");
-            pconverter << nextPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-            pconverter.str(""); pconverter << numRods / 2;
-            alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-            pconverter.str("");
-            pconverter << forbiddenPhiLowerBIndex;
-            alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-            a.push_back(alg);
-            pconverter.str("");
-            alg.parameters.clear();
           }
-          } // end fallback PhiAltAlgo
         }
       }
 
@@ -4263,55 +4163,6 @@ namespace insur {
       rot.phiz = 0.;
       storedRotations.insert(std::pair<std::string, Rotation>(rotationName, rot));
     }
-  } 
-
-
-
-  void Extractor::createAndStoreDDTrackerAngularAlgorithmBlock(std::vector<AlgoInfo>& storedAlgorithmBlocks,
-							       const std::string nameSpace, 
-							       const std::string parentName,
-							       const std::string childName,
-							       const double startAngleInRad,
-							       const double rangeAngleInRad,
-							       const double radius,
-							       const XYZVector& center,
-							       const int numCopies,
-							       const int startCopyNumber,
-							       const int copyNumberIncrement) {
-    AlgoInfo myAlgo; // would obviously be better to build the algo directly here instead of having a constructor with no argument!
-
-    // Algo name
-    myAlgo.name = xml_angular_algo;
-
-    // Parent volume name
-    myAlgo.parent = nameSpace + ":" + parentName;
-
-    // Child volume name
-    myAlgo.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + childName));
-	 
-    // Volume with copy number 1, center phi angle
-    myAlgo.parameters.push_back(numericParam(xml_startangle, any2str(startAngleInRad * 180. / M_PI, xml_angle_precision) + "*deg"));
-	 
-    // Difference between first and last volumes' centers phi angles
-    myAlgo.parameters.push_back(numericParam(xml_rangeangle, any2str(rangeAngleInRad * 180. / M_PI, xml_angle_precision) + "*deg"));
-
-    // All volumes are assumed to be placed at same radius in that algorithm
-    myAlgo.parameters.push_back(numericParam(xml_radius, any2str(radius) + "*mm"));
-
-    // Shift of children with respect to parent, AFTER rotation is done
-    myAlgo.parameters.push_back(vectorParam(center.X(), center.Y(), center.Z()));
-
-    // Number of children copies
-    myAlgo.parameters.push_back(numericParam(xml_nmods, any2str(numCopies)));
-	  
-    // Start copy number
-    myAlgo.parameters.push_back(numericParam(xml_startcopyno, any2str(startCopyNumber)));
-
-    // Copy number increment
-    myAlgo.parameters.push_back(numericParam(xml_incrcopyno, any2str(copyNumberIncrement)));
-
-    // Store algo
-    storedAlgorithmBlocks.push_back(myAlgo);
   }
 
 
