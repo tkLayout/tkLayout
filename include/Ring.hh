@@ -149,6 +149,8 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
   void buildBottomUp();
   void buildTopDown();
 
+  void sortModulesByIncreasingPhi();
+
   Property<ModuleShape, NoDefault> moduleShape;
   Property<double, Default> phiOverlap;
   Property<bool  , Default> requireOddModsPerSlice;

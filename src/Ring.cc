@@ -165,6 +165,10 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta, dou
     modules_.push_back(mod);
   }
 
+  sortModulesByIncreasingPhi();
+}
+
+void Ring::sortModulesByIncreasingPhi() {
   // Sort the modules in increasing phi and set their IDs
   modules_.sort([](const EndcapModule& mod_a, const EndcapModule& mod_b) {
     // femod handles small differences in phi in module placement
@@ -295,6 +299,8 @@ void Ring::rotateToNegativeZSide() {
   for (auto& m : modules_) {
     m.rotateToNegativeZSide();
   }
+
+  sortModulesByIncreasingPhi();
 }
 
 /** This computes the actual coverage in Phi of a disk (after it is built).
