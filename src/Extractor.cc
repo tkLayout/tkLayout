@@ -3566,6 +3566,13 @@ namespace insur {
       matname << xml_base_serfcomp << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
+        if (iter->getRWidth() <= 0) {
+          std::stringstream msg;
+          msg << shapename.str() << " has non-positive rWidth=" << iter->getRWidth()
+	      << ". Skipping (problem upstream in Materialway section building)." << std::ends;
+          logWARNING(msg.str());
+          continue;
+        }
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 

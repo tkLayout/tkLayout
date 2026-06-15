@@ -945,6 +945,15 @@ namespace material {
           int sectionMaxZ = sectionMinZ + sectionWidth;
           //int sectionMaxR = discretize(disk.maxRwithHybrids()) + diskSectionUpMargin;
           int sectionMaxR = section->minR() - safetySpace - layerStationLenght;
+	  if (sectionMaxR <= sectionMinR) {
+	    logERROR(Form("Disk service routing: sectionMaxR (%d) <= sectionMinR (%d) "
+			 "(disk minR=%.1f mm, horizontal rail minR=%.1f mm). "
+			 "Not enough radial clearance for the conversion station. "
+			 "sectionMaxR clamped to sectionMinR.",
+			 sectionMaxR, sectionMinR,
+			 undiscretize(sectionMinR), undiscretize(section->minR())));
+	    sectionMaxR = sectionMinR;
+	  }
 
 	  // DEE VOLUMES (1 disk = 2 dees)
 	  // TO DO: move this to tuneable disk properties.
