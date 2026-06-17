@@ -346,6 +346,33 @@ public:
   double maxR() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxR); }
   double minR() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minR); }
 
+  // Hybrid-expanded module dimensions. Shared by extremaWithHybrids() and ModuleComplex
+  // (Extractor) so the two stay in sync. Args are explicit so callers can pass variants
+  // (e.g. the double-sensor pixel length).
+  static double computeExpandedModWidth(double moduleWidth, double serviceHybridWidth,
+                                        double deadAreaExtraWidth, double chipNegativeXExtraWidth,
+                                        double chipPositiveXExtraWidth) {
+    const double totalServiceHybridWidth = 2. * serviceHybridWidth;                              // OT case
+    const double totalDeadAreaExtraWidth = 2. * deadAreaExtraWidth;                              // IT case: around sensor
+    const double totalChipExtraWidth = 2. * MAX(chipNegativeXExtraWidth, chipPositiveXExtraWidth); // IT case: around chip
+    return moduleWidth + totalServiceHybridWidth + MAX(totalDeadAreaExtraWidth, totalChipExtraWidth);
+  }
+  static double computeExpandedModLength(double moduleLength, double frontEndHybridWidth,
+                                         double deadAreaExtraLength) {
+    return moduleLength + 2. * frontEndHybridWidth + 2. * deadAreaExtraLength;
+  }
+  static double computeExpandedModThickness(bool isPixel, bool isTiming, double dsDistance,
+                                            double sensorThickness, double supportPlateThickness,
+                                            double chipThickness, double hybridThickness) {
+    if (!isPixel) {
+      // if (!isTiming)
+      return dsDistance + sensorThickness + supportPlateThickness;
+      // else  // Legacy formula, likely incorrect
+      //   return sensorThickness + 2.0 * MAX(supportPlateThickness, hybridThickness);
+    }
+    return sensorThickness + chipThickness + hybridThickness;
+  }
+
   std::map<std::string, double> extremaWithHybrids() const;
   double minZwithHybrids() const { return extremaWithHybrids()["minZ"]; }
   double maxZwithHybrids() const { return extremaWithHybrids()["maxZ"]; }

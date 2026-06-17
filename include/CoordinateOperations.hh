@@ -9,6 +9,9 @@
 #define CORDINATEOPERATIONS_H
 
 #include <vector>
+#include <array>
+#include <cstddef>
+#include <Math/Vector3D.h>
 #include <Math/Vector3Dfwd.h>
 #include <Math/VectorUtil.h>
 #include <TVector3.h>
@@ -19,6 +22,35 @@ using ROOT::Math::XYZVector;
 
 
 namespace CoordinateOperations {
+
+  /*
+   * Given a box center and its three half-axis vectors (already scaled to half-extent),
+   * returns the 16 bounding-box candidate points: top & bottom corners plus the top &
+   * bottom midpoints of each edge. Used for module-with-hybrids extrema computation.
+   * Corner ordering (in the xy plane): 0=(+x,+y), 1=(-x,+y), 2=(-x,-y), 3=(+x,-y).
+   */
+  inline std::array<XYZVector, 16> boundingBoxCandidates(const XYZVector& center,
+                                                         const XYZVector& halfX,
+                                                         const XYZVector& halfY,
+                                                         const XYZVector& halfZ) {
+    std::array<XYZVector, 4> xyCorners;
+    for (std::size_t i = 0; i < 4; ++i) {
+      double signX = (i == 0 || i == 3) ? 1. : -1.;
+      double signY = (i == 0 || i == 1) ? 1. : -1.;
+      xyCorners[i] = center + signX * halfX + signY * halfY;
+    }
+    std::array<XYZVector, 16> pts;
+    for (std::size_t i = 0; i < 4; ++i) {
+      std::size_t next = (i + 1) % 4;
+      XYZVector top = xyCorners[i] + halfZ;
+      XYZVector bot = xyCorners[i] - halfZ;
+      pts[i*4]     = top;
+      pts[i*4 + 1] = bot;
+      pts[i*4 + 2] = (top + (xyCorners[next] + halfZ)) * 0.5;
+      pts[i*4 + 3] = (bot + (xyCorners[next] - halfZ)) * 0.5;
+    }
+    return pts;
+  }
 
   /*
    * Convert XYZVector or Polar3DVector into a TVector. 

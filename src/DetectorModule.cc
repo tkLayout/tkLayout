@@ -197,43 +197,17 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     //    ----------------- top
     //    ----------------- bottom
 
-    double width = area() / length();
-    double expandedModWidth = width + 2 * serviceHybridWidth();
-    double expandedModLength = length() + outerSensorExtraLength() + 2 * frontEndHybridWidth();
-    double expandedModThickness;
-    if (!isPixelModule())
-      expandedModThickness = dsDistance() + sensorThickness() + supportPlateThickness();
-    else
-      expandedModThickness = sensorThickness() + chipThickness() + hybridThickness();
+    const double width = area() / length();
+    const double expandedModWidth = computeExpandedModWidth(width, serviceHybridWidth(),
+        deadAreaExtraWidth(), chipNegativeXExtraWidth(), chipPositiveXExtraWidth());
+    const double expandedModLength = computeExpandedModLength(length() + outerSensorExtraLength(),
+        frontEndHybridWidth(), deadAreaExtraLength());
+    const double expandedModThickness = computeExpandedModThickness(isPixelModule(), isTimingModule(),
+        dsDistance(), sensorThickness(), supportPlateThickness(), chipThickness(), hybridThickness());
 
-    const ROOT::Math::XYZVector& modCenter = center();
-    const ROOT::Math::XYZVector modX(getLocalX() * expandedModWidth * 0.5);
-    const ROOT::Math::XYZVector modY(getLocalY() * expandedModLength * 0.5);
-    const ROOT::Math::XYZVector modZ(normal() * expandedModThickness * 0.5);
-
-    // Expanded module corners
-    std::array<ROOT::Math::XYZVector, 4> xyCorners;
-    for (std::size_t i = 0; i < 4; ++i) {
-      double signX = (i == 0 || i == 3) ? 1. : -1;
-      double signY = (i == 0 || i == 1) ? 1. : -1;
-      xyCorners[i] = modCenter + signX * modX + signY * modY;
-    }
-
-    // Calculate all vertex candidates (corners + mid points)
-    std::array<ROOT::Math::XYZVector, 16> allPoints;
-    for (std::size_t i = 0; i < 4; ++i) {
-      std::size_t nextIdx = (i + 1) % 4;
-
-      // Top and bottom corners
-      auto botVtx = xyCorners[i] - modZ;
-      auto topVtx = xyCorners[i] + modZ;
-      allPoints[i*4]     = topVtx;
-      allPoints[i*4 + 1] = botVtx;
-
-      // Top and bottom midpoints between this corner and the next
-      allPoints[i*4 + 2] = (topVtx + (xyCorners[nextIdx] + modZ)) * 0.5;
-      allPoints[i*4 + 3] = (botVtx + (xyCorners[nextIdx] - modZ)) * 0.5;
-    }
+    const auto allPoints = CoordinateOperations::boundingBoxCandidates(
+        center(), XYZVector(getLocalX() * expandedModWidth * 0.5),
+        XYZVector(getLocalY() * expandedModLength * 0.5), normal() * expandedModThickness * 0.5);
 
     // Find min and max Z and R
     const auto [zMin, zMax] = std::minmax_element(allPoints.begin(), allPoints.end(),
