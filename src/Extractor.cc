@@ -3162,6 +3162,13 @@ namespace insur {
         // Per-module placement data indexed by [ring][phi_index]. Replaces DDTrackerRingAlgo.
         struct SDModuleData { double phi_deg; double radius; double yaw_deg; bool isFlipped; };
         std::map<int, std::map<int, SDModuleData>> modulesByRingPhi;
+
+        // Edge-aware inner/outer radius per (subdisk, ring) key - min/max over ALL placed
+        // modules. Irregular rings mix radii and yaws, so a single representative module is
+        // not necessarily the innermost- or outermost-reaching one
+        std::map<int, double> ringRminEdge;
+        std::map<int, double> ringRmaxEdge;
+
         for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
           const int ring   = iiter->getModule().uniRef().ring;
           const int phiIdx = iiter->getModule().uniRef().phi;
@@ -3172,6 +3179,32 @@ namespace insur {
               iiter->getModule().yawAngle() * 180.0 / M_PI,
               iiter->getModule().flipped()
             };
+          }
+
+          // Accumulate edge-aware rmin/rmax over all caps
+          if (iiter->getModule().uniRef().side > 0) {
+            ModuleComplex mcEdge("", "", *iiter); // no buildSubVolumes() call for phi > 2
+            const double rEdgeMin = mcEdge.getEdgeAwareRmin();
+            const double rEdgeMax = mcEdge.getEdgeAwareRmax();
+            // Map to the same (subdisk, ring) key used by rinfo below
+            const int sd  = (phiIdx % 2 == 1) ? 0 : 1;
+            const int key = nRings * sd + ring;
+
+            // Min/max over every placed module in ring
+            auto itRmin = ringRminEdge.find(key);
+            if (itRmin == ringRminEdge.end())
+              ringRminEdge[key] = rEdgeMin;
+            else
+              itRmin->second = std::min(itRmin->second, rEdgeMin);
+            auto itRmax = ringRmaxEdge.find(key);
+            if (itRmax == ringRmaxEdge.end())
+              ringRmaxEdge[key] = rEdgeMax;
+            else
+              itRmax->second = std::max(itRmax->second, rEdgeMax);
+
+            // Propagate to disc-level accumulators so sub-disk/disc envelopes follow
+            rmin = std::min(rmin, rEdgeMin);
+            rmax = std::max(rmax, rEdgeMax);
           }
         }
 
@@ -3409,9 +3442,9 @@ namespace insur {
 	      myRingInfo.isDiskAtPlusZEnd = iiter->getModule().uniRef().side;
 	      myRingInfo.numModules = myRing->numModules();
 	      myRingInfo.moduleThickness = modcomplex.getExpandedModuleThickness();
-	      myRingInfo.radiusMin  = modcomplex.getRmin();
+	      myRingInfo.radiusMin = ringRminEdge.at(nRings * (phiuniref-1) + modRing);
 	      myRingInfo.radiusMid = iiter->getModule().center().Rho();
-	      myRingInfo.radiusMax = modcomplex.getRmax();
+	      myRingInfo.radiusMax = ringRmaxEdge.at(nRings * (phiuniref-1) + modRing);
 	      myRingInfo.zMin = ringzmin.at(modRing);
 	      myRingInfo.smallAbsZSurfaceZMax = ringSmallAbsZModulesZMax.at(modRing);
 	      myRingInfo.bigAbsZSurfaceZMin = ringBigAbsZModulesZMin.at(modRing);
@@ -5083,6 +5116,50 @@ namespace insur {
 
     checkSubVolumes();
   }
+
+  double ModuleComplex::getEdgeAwareRmin() const {
+    // Box-SDF approach: project (origin − center) onto the rectangle's local axes and
+    // apply the standard outside-only box distance formula. Orientation matches
+    // registerEndcapModuleRotation (phi + yaw), so flipped (SubDisc2) and unflipped
+    // (SubDisc1) modules are treated identically, independent of vertex ordering.
+
+    const double halfW = expandedModWidth  * 0.5;
+    const double halfL = expandedModLength * 0.5;
+
+    const double aL   = center.Phi() + module.yawAngle();
+    const double cosL = std::cos(aL);
+    const double sinL = std::sin(aL);
+
+    // Projections of the XY-centre onto the box's width (projU) and length (projV) axes
+    const double projU = center.Y() * cosL - center.X() * sinL;
+    const double projV = center.Y() * sinL + center.X() * cosL;
+
+    const double dx = std::max(std::fabs(projU) - halfW, 0.0);
+    const double dy = std::max(std::fabs(projV) - halfL, 0.0);
+    return std::sqrt(dx * dx + dy * dy);
+  }
+
+  double ModuleComplex::getEdgeAwareRmax() const {
+    // Farthest distance from the Z axis to the expanded module rectangle. The farthest point
+    // of a rectangle from an external point is always a corner, so add the half-extents to
+    // the (absolute) projections of the center-to-axis vector onto the box's local axes.
+    // Orientation matches registerEndcapModuleRotation (phi + yaw), like getEdgeAwareRmin.
+
+    const double halfW = expandedModWidth  * 0.5;
+    const double halfL = expandedModLength * 0.5;
+
+    const double aL   = center.Phi() + module.yawAngle();
+    const double cosL = std::cos(aL);
+    const double sinL = std::sin(aL);
+
+    // Projections of the center vector onto the box's width (projU) and length (projV) axes
+    const double projU = center.Y() * cosL - center.X() * sinL;
+    const double projV = center.Y() * sinL + center.X() * cosL;
+
+    const double dx = std::fabs(projU) + halfW;
+    const double dy = std::fabs(projV) + halfL;
+    return std::sqrt(dx * dx + dy * dy);
+  } 
 
   void ModuleComplex::checkSubVolumes() {
     for (auto& vit : volumes) {
