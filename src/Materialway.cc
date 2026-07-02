@@ -943,15 +943,23 @@ namespace material {
           int sectionMinZ = attachPoint;
           int sectionMinR = discretize(disk.minRwithHybrids());
           int sectionMaxZ = sectionMinZ + sectionWidth;
-          //int sectionMaxR = discretize(disk.maxRwithHybrids()) + diskSectionUpMargin;
-          int sectionMaxR = section->minR() - safetySpace - layerStationLenght;
+
+          // Derive the disk riser top / flange-station radius from the ENDCAP RAIL (startEndcap),
+          // NOT from whatever section the Z-walk above stopped on. When a disk's attach-Z coincides
+          // with a second conversion station inserted into the rail's nextSection chain, the walk
+          // stops on that station, which sits at railMaxR + safetySpace (above the rail). Using its
+          // minR here may push the flange station up into the rail, producing a service x service
+          // overlap. startEndcap is the horizontal rail and has constant minR, so this places the
+          // flange station just below the rail like every other disk.
+          int sectionMaxR = startEndcap->minR() - safetySpace - layerStationLenght;
+
 	  if (sectionMaxR <= sectionMinR) {
 	    logERROR(Form("Disk service routing: sectionMaxR (%d) <= sectionMinR (%d) "
 			 "(disk minR=%.1f mm, horizontal rail minR=%.1f mm). "
 			 "Not enough radial clearance for the conversion station. "
 			 "sectionMaxR clamped to sectionMinR.",
 			 sectionMaxR, sectionMinR,
-			 undiscretize(sectionMinR), undiscretize(section->minR())));
+			 undiscretize(sectionMinR), undiscretize(startEndcap->minR())));
 	    sectionMaxR = sectionMinR;
 	  }
 
