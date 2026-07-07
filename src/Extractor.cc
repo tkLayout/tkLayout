@@ -1862,13 +1862,15 @@ namespace insur {
       if (!isPixelTracker) {
 
         // Register a per-rod phi placement rotation and return its name.
-        // Returns "NULL" when phi_rad ≈ 0 (identity; no rotation tag needed).
+        // Always registers a named rotation, even for phi_rad ≈ 0 (identity), rather
+        // than returning the "NULL" sentinel: DDTrackerXYZPosAlgo's dd4hep plugin (currently)
+        // drops the explicit copy number when the rotation is "NULL" and lets DD4hep
+        // auto-assign one instead, which can collide with an explicitly-numbered
+        // sibling placed earlier in the same loop.
         auto registerRodPhiRotation = [&](double phi_rad) -> std::string {
           const double phi_deg = phi_rad * (180.0 / M_PI);
           double norm_deg = std::fmod(phi_deg, 360.0);
           if (norm_deg < 0.0) norm_deg += 360.0;
-          // CMSSW tolerance. TODO: Encapsulate it in a function.
-          if (std::fabs(norm_deg) < 1e-6 || std::fabs(norm_deg - 360.0) < 1e-6) return "NULL";
           std::ostringstream rotName;
           rotName << lname.str() << "_RodPhi" << static_cast<int>(std::round(norm_deg * 10.0));
           const std::string name = rotName.str();
@@ -1923,8 +1925,7 @@ namespace insur {
             const double yawDeg = std::round(data.yaw * 180.0 / M_PI);
             const std::string& templateName = yawDegToTemplateName.at(yawDeg);
             const std::string rotName = registerRodPhiRotation(data.centerPhi);
-            const std::string rotEntry = (rotName == "NULL") ? "NULL"
-                                                             : trackerXmlTags.nspace + ":" + rotName;
+            const std::string rotEntry = trackerXmlTags.nspace + ":" + rotName;
             alg.name   = xml_xyzpos_algo;
             alg.parent = trackerXmlTags.nspace + ":" + lname.str();
             alg.parameters.push_back(stringParam(xml_childparam,
@@ -2041,12 +2042,13 @@ namespace insur {
 	const std::string nameSpace = trackerXmlTags.nspace;
 	const std::string parentName = lname.str();
 
-	// Register a per-ladder phi-rotation around Z and return its name ("NULL" for identity).
+	// Register a per-ladder phi-rotation around Z and return its name.
+	// Always registers a named rotation, even for phi_rad ≈ 0 (identity) -- see
+	// registerRodPhiRotation above for why the "NULL" sentinel is avoided.
 	auto registerLadderPhiRotation = [&](double phi_rad) -> std::string {
 	  const double phi_deg = phi_rad * 180.0 / M_PI;
 	  double norm_deg = std::fmod(phi_deg, 360.0);
 	  if (norm_deg < 0.0) norm_deg += 360.0;
-	  if (std::fabs(norm_deg) < 1e-6 || std::fabs(norm_deg - 360.0) < 1e-6) return "NULL";
 	  std::ostringstream rotName;
 	  rotName << lname.str() << "_LadderPhi" << static_cast<int>(std::round(norm_deg * 10.0));
 	  const std::string name = rotName.str();
@@ -2065,7 +2067,7 @@ namespace insur {
 	auto emitITLadderAlgo = [&](int phiIdx, const ITLadderPlacementData& data) {
 	  const std::string& templateName = data.isFlipped ? ladderName.str() : unflippedLadderName.str();
 	  const std::string rotName = registerLadderPhiRotation(data.centerPhi);
-	  const std::string rotEntry = (rotName == "NULL") ? "NULL" : nameSpace + ":" + rotName;
+	  const std::string rotEntry = nameSpace + ":" + rotName;
 	  alg.name   = xml_xyzpos_algo;
 	  alg.parent = nameSpace + ":" + parentName;
 	  alg.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + templateName));
