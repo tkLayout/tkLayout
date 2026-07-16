@@ -5,7 +5,33 @@
 
 #include <XMLWriter.hh>
 #include <stdlib.h> // Because atoi() is used
+#include <cmath>
 
+namespace {
+
+// Grid (degrees) final rotation angles are snapped to, to erase float noise
+// below any physically meaningful placement resolution.
+constexpr double xml_rotation_angle_quantum = 1e-6;
+
+double wrapDeg(double deg) {
+  double w = std::fmod(deg, 360.0);
+  return (w < 0.0) ? w + 360.0 : w;
+}
+
+double quantizeDeg(double deg) {
+  return std::round(deg / xml_rotation_angle_quantum) * xml_rotation_angle_quantum;
+}
+
+// At a pole (theta ~ 0 or 180) phi is not meaningfully defined by the
+// geometry - the axis direction is ~independent of it. Rather than emit
+// whatever arbitrary value phi happens to be carrying, snap it to 0.
+double singularitySafePhi(double theta_deg, double phi_deg) {
+  double t = wrapDeg(theta_deg);
+  bool atPole = (t < xml_rotation_angle_quantum) || (std::abs(t - 180.0) < xml_rotation_angle_quantum);
+  return atPole ? 0.0 : phi_deg;
+}
+
+}  // namespace
 
 namespace insur {
 
@@ -952,6 +978,13 @@ namespace insur {
      */
     void XMLWriter::rotation(std::string name, double thetax, double phix,
             double thetay, double phiy, double thetaz, double phiz, std::ostringstream& stream) {
+        thetax = quantizeDeg(thetax);
+        thetay = quantizeDeg(thetay);
+        thetaz = quantizeDeg(thetaz);
+        phix = quantizeDeg(wrapDeg(singularitySafePhi(thetax, phix)));
+        phiy = quantizeDeg(wrapDeg(singularitySafePhi(thetay, phiy)));
+        phiz = quantizeDeg(wrapDeg(singularitySafePhi(thetaz, phiz)));
+
         stream << xml_rotation_open << name << xml_rotation_first_inter << thetax << xml_rotation_second_inter << phix;
         stream << xml_rotation_third_inter << thetay << xml_rotation_fourth_inter << phiy << xml_rotation_fifth_inter;
         stream << thetaz << xml_rotation_sixth_inter << phiz << xml_rotation_close;
