@@ -195,10 +195,16 @@ void EndcapDetIdBuilder::visit(Endcap& e) {
 
 void EndcapDetIdBuilder::visit(Disk& d) {
   geometryHierarchyIds_[Endcaps::SIDE_LEVEL] = d.side() ? DetId::EndcapDisk::PositiveZ : DetId::EndcapDisk::NegativeZ;
-  // Increasing in |z|
-  geometryHierarchyIds_[isPixelTracker_ ? PixelEndcap::DISK_LEVEL : TID::DISK_LEVEL] = d.diskNumber();
 
-  // Store information for visit(Ring&)
+  // Increasing in |z|
+  if (isPixelTracker_ && !hasSubDisks_) {
+    // Two consecutive physical disk planes (1-indexed) pair into one CMSSW "double disk"
+    geometryHierarchyIds_[PixelEndcap::DISK_LEVEL] = d.diskNumber() / 2;
+    geometryHierarchyIds_[PixelEndcap::SUBDISK_LEVEL] = (d.diskNumber() % 2 == 1) ? DetId::Fixed_1 : DetId::Fixed_0;
+  } else {
+    geometryHierarchyIds_[isPixelTracker_ ? PixelEndcap::DISK_LEVEL : TID::DISK_LEVEL] = d.diskNumber();
+  }
+
   numEmptyRings_ = d.numEmptyRings();
 }
    
@@ -217,14 +223,13 @@ void EndcapDetIdBuilder::visit(EndcapModule& m) {
 
   if (isPixelTracker_) { // Pixel Endcap
     if (hasSubDisks_) {
+      phiRef_ = (phiRef_ % 2 == 1) ? ((phiRef_ + 1) / 2) : (phiRef_ / 2);
       // Increasing in |z|
       geometryHierarchyIds_[PixelEndcap::SUBDISK_LEVEL] = m.isSmallerAbsZModuleInRing() ? DetId::Fixed_0 : DetId::Fixed_1;
-      // Increasing in phi
-      geometryHierarchyIds_[PixelEndcap::MODULE_LEVEL] = (phiRef_ % 2 == 1) ? ((phiRef_ + 1) / 2) : (phiRef_ / 2);
     }
-    else {
-      logWARNING("No CMSSW DetId scheme exists for Pixel Endcap with Single Disk.");
-    }
+    // else: SUBDISK_LEVEL already set from disk pairing in visit(Disk&)
+    // Increasing in phi
+    geometryHierarchyIds_[PixelEndcap::MODULE_LEVEL] = phiRef_;
   }
   else { // Outer Tracker Endcap
     if (hasSubDisks_) {
