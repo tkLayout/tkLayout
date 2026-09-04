@@ -608,3 +608,9 @@ OT807_IT744.cfg                      Just like OT806_IT744, but with fixed modul
 OT807_IT749.cfg                      Just like OT806_IT749, but with fixed module orientation in TB2S and TBPS (flat and tilted sections).
 OT807_IT745.cfg                      Just like OT807_IT749, but without gap and using module_BPIX_L1_1x2_2500_2sens_3D instead of module_BPIX_L1_1x2_2500_3D
 OT807_IT746.cfg                      Just like OT807_IT749, but with the big gap 1.3.
+
+NOTE: Pixel_V7_4_4.cfg was reverted to commit 0be8eb5 and no longer includes TEPX_7_4_4.cfg
+      (it now uses BPIX_7_4_4.cfg + Pixel_V6/TFPX_6_4_0.cfg + Pixel_V6/TEPX_6_1_3.cfg instead).
+      Since the "_4_4" TEPX file was therefore no longer tied to Pixel_V7_4_4, it was renamed
+      to TEPX_7_4_5.cfg (content unchanged) and Pixel_V7_4_5.cfg, Pixel_V7_4_6.cfg and
+      Pixel_V7_4_9.cfg were updated to include it under its new name.
