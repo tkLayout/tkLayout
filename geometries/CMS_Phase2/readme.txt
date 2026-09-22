@@ -614,3 +614,9 @@ NOTE: Pixel_V7_4_4.cfg was reverted to commit 0be8eb5 and no longer includes TEP
       Since the "_4_4" TEPX file was therefore no longer tied to Pixel_V7_4_4, it was renamed
       to TEPX_7_4_5.cfg (content unchanged) and Pixel_V7_4_5.cfg, Pixel_V7_4_6.cfg and
       Pixel_V7_4_9.cfg were updated to include it under its new name.
+
+NOTE: BPIX_7_4_3.cfg and BPIX_7_4_6.cfg only differed from BPIX_7_4_2.cfg and BPIX_7_4_4.cfg
+      by moduleSubType. Commit 5b985284 back-ported moduleSubType to 7.4.2 and 7.4.4, making
+      the pairs identical. Pixel_V7_4_3.cfg and Pixel_V7_4_9.cfg now include BPIX_7_4_2.cfg,
+      Pixel_V7_4_6.cfg now includes BPIX_7_4_4.cfg, and BPIX_7_4_3/6.cfg are @error stubs.
+      IT743, IT746 and IT749 geometries are unchanged.
