@@ -580,8 +580,13 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
     // Look for @error directive: unconditionally aborts preprocessing with a message
     if ((includeStart = trimmed.find("@error")) != string::npos) {
       string message = trim(trimmed.substr(includeStart + strlen("@error")));
-      std::cerr << "\nERROR: " << absoluteFileName << ":" << numLine << " : " << message << endl;
+      logERROR( absoluteFileName + ":" + any2str(numLine) + " : " + message);
       exit(EXIT_FAILURE);
+    }
+    // Look for @warning directive: unconditionally aborts preprocessing with a message
+    else if ((includeStart = trimmed.find("@warning")) != string::npos) {
+      string message = trim(trimmed.substr(includeStart + strlen("@warning")));
+      logWARNING( absoluteFileName + ":" + any2str(numLine) + " : " + message);
     }
     // Look for @include and @include-std directives
     else if ((includeStart = trimmed.find("@include")) != string::npos) {
