@@ -254,8 +254,8 @@ $(BINDIR)/%: $(LIBDIR)/%.o $(OBJECTFILES) $(ANALYZERVISITORFILES) $(OUTERCABLING
 $(BINDIR)/diskPlace: $(SRCDIR)/diskPlace.cc
 	$(COMP) $(SRCDIR)/diskPlace.cc -lm -o $(BINDIR)/diskPlace
 
-$(BINDIR)/setup: $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cc
-	$(COMP) $(LINKERFLAGS) $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cc \
+$(BINDIR)/setup: $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/MessageLogger.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cc
+	$(COMP) $(LINKERFLAGS) $(LIBDIR)/MainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/MessageLogger.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cc \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup
 
