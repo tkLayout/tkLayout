@@ -583,7 +583,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
       logERROR( absoluteFileName + ":" + any2str(numLine) + " : " + message);
       exit(EXIT_FAILURE);
     }
-    // Look for @warning directive: unconditionally aborts preprocessing with a message
+    // Look for @warning directive
     else if ((includeStart = trimmed.find("@warning")) != string::npos) {
       string message = trim(trimmed.substr(includeStart + strlen("@warning")));
       logWARNING( absoluteFileName + ":" + any2str(numLine) + " : " + message);
