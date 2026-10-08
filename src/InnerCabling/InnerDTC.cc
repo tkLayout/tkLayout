@@ -15,7 +15,9 @@ InnerDTC::InnerDTC(const int DTCId, const bool isPositiveZEnd, const bool isPosi
 /*
  *  Connect a Bundle to the DTC.
  */
-void InnerDTC::addBundle(InnerBundle* bundle) { 
+void InnerDTC::addBundle(InnerBundle* bundle) {
+  if (bundle == nullptr) throw PathfulException("InnerDTC::addBundle Error: Bundle pointer is nullptr");
+  bundle->setDTC(this);
   bundles_.push_back(bundle);
 }
 
