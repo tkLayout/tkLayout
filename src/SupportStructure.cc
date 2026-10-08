@@ -94,28 +94,6 @@ namespace material {
 
         std::set<double> layerRadii; //use set for ordering safe check
 
-         /* class LayerVisitor : public ConstGeometryVisitor {
-         private:
-           std::set<double>& layerRadiuses_;
-           const double& autoLayerMarginUpper_;
-           const double& autoLayerMarginLower_;
-          
-         public:
-           LayerVisitor(std::set<double>& layerRadiuses, const double& autoLayerMarginUpper, const double& autoLayerMarginLower) :
-             layerRadiuses_(layerRadiuses),
-             autoLayerMarginUpper_(autoLayerMarginUpper),
-             autoLayerMarginLower_(autoLayerMarginLower)
-           {};
-          
-           void visit(Layer& layer) {
-             layerRadiuses_.insert(layer.minRwithHybrids() - autoLayerMarginUpper_);
-             layerRadiuses_.insert(layer.maxRwithHybrids() + autoLayerMarginLower_);
-           }
-         };
-
-         LayerVisitor visitor(layerRadiuses, autoLayerMarginUpper, autoLayerMarginLower);
-         barrel.accept(visitor); */
-
         //get radiuses around layers
         for(const Layer& layer : barrel.layers()) {
           layerRadii.insert(layer.minRwithHybrids() - autoLayerMarginUpper);

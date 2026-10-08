@@ -77,9 +77,6 @@ class ptError {
    int getEndcapType() { return endcapType ; }
    RILength getMaterial() { return material ; }
 
-   // Conversion between strips and p
-//   double stripsToP(double strips);
-//   double pToStrips(double p);
    // Error computation
    double computeErrorBE(double p); // CUIDADO only for testing, called by computeError after previously setting the correct parameters
    double computeError(double p);

@@ -251,11 +251,6 @@ namespace insur {
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
                     r_length += it->second / (materials.getMaterial(it->first).rlength * getSurface() / 100.0);
                 }
-                /*for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
-                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI_[getSuperName(cit->first)].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
-                    }
-		    }*/
             }
         }
     }
@@ -275,19 +270,12 @@ namespace insur {
                 for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
                     i_length += it->second / (materials.getMaterial(it->first).ilength * getSurface() / 100.0);
                 }
-                    
-                /*for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
-                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        componentsRI_[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
-                    }
-                }*/
             }
         }
     }
 
   // Versions with new material tab definition
     void MaterialProperties::calculateRadiationLength(double offset) {
-      //const material::MaterialTab& materialTab = material::MaterialTab::instance();
       const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
  
         if (getSurface() > 0) {
@@ -314,7 +302,6 @@ namespace insur {
     }
     
     void MaterialProperties::calculateInteractionLength(double offset) {
-      //const material::MaterialTab& materialTab =  material::MaterialTab::instance();
       const material::MaterialsTable& materialsTable = material::MaterialsTable::instance();
 
         if (getSurface() > 0) {

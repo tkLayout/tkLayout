@@ -157,8 +157,6 @@ struct Hits { // holder struct for TTree export
   std::vector<float> pterr, hitprob;
   std::vector<float> deltas;
   std::vector<char> cnt, z, rho, phi;
-//  std::vector<double> distx, disty;
-//  std::vector<double> eta;
   const std::string name;
   Hits(const std::string& name_) : name(name_) {}
 
@@ -168,8 +166,6 @@ struct Hits { // holder struct for TTree export
     pterr.clear(); hitprob.clear();
     deltas.clear();
     cnt.clear(); z.clear(); rho.clear(); phi.clear();
-//    distx.clear(); disty.clear();
-//    eta.clear();
   }
   void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, float deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_/*, double distx_, double disty_, double eta_*/) {
     glox.push_back(glox_);
@@ -184,9 +180,6 @@ struct Hits { // holder struct for TTree export
     z.push_back(z_);
     rho.push_back(rho_);
     phi.push_back(phi_);
-//    distx.push_back(distx_);
-//    disty.push_back(disty_);
-//    eta.push_back(eta_);
   }
   int size() const { return glox.size(); }
 
@@ -203,9 +196,6 @@ struct Hits { // holder struct for TTree export
     tree.Branch((name + ".z").c_str(), &z);
     tree.Branch((name + ".rho").c_str(), &rho);
     tree.Branch((name + ".phi").c_str(), &phi);
-//    tree.Branch((name + ".distx").c_str(), &distx);
-//    tree.Branch((name + ".disty").c_str(), &disty);
-//    tree.Branch((name + ".eta").c_str(), &eta);
   }
 };
 
@@ -272,16 +262,6 @@ public:
   std::string toString() const { return any2str(value0_) + "," + any2str(value1_); }
 };
 
-/*
-template<>
-class BinaryValue<bool> : public Value<bool> {
-  TRandom& die_;
-  BinaryValue(TRandom& die) : die_(die) {}
-  bool get() { return die_.Integer(2); }
-  std::string toString() const { return "true|false"; }
-};
-*/
-
 template<class T>
 std::auto_ptr<Value<T> > valueFromString(TRandom& die, const std::string& str) {
   std::vector<std::string> values = split(str, ":,");
@@ -340,8 +320,6 @@ public:
   void shootTracks(long int numEvents, long int numTracksPerEvent, int seed);
   void shootTracks(const po::variables_map& varmap, int seed);
   void exportGeometryData();
-  //void manualPolygonTestBench();
-  //void moduleTestBench();
 };
 
 #endif

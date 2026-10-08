@@ -266,7 +266,6 @@ private:
   bool visible_;
   std::string title_;
   RootWPage* page_;
-  //void setDefaultParameters();
   std::vector<RootWItem*> itemList_;
   std::string targetDirectory_;
 };

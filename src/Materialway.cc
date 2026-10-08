@@ -873,23 +873,6 @@ namespace material {
           }
           moduleSectionAssociations_[&module] = section;
         }
-        /*
-        else {
-          attachPoint = discretize(module.minZ());
-          section = startLayerZMinus;
-          while (section->minZ() > attachPoint - sectionTolerance) {
-            if(!section->hasNextSection()) {
-              //TODO: messaggio di errore
-              return;
-            }
-            section = section->nextSection();
-          }
-          if (section->maxZ() > attachPoint + sectionTolerance) {
-            section = splitSection(section, attachPoint, false);
-          }
-          moduleSectionAssociations_[&module] = section;
-        }
-        */
       }
 
 
@@ -1244,10 +1227,6 @@ namespace material {
                                                                               actually transforms millimiters in microns */
   const int Materialway::sectionWidth = discretize(insur::geom_inactive_volume_width);     /**< the width of a section */
   const int Materialway::safetySpace = discretize(insur::geom_epsilon);           /**< the safety space between sections */
-  //const double Materialway::globalMaxZ_mm = insur::max_length;                     /**< the Z coordinate of the end point of the sections */
-  //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
-  //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
-  //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
 
   const int Materialway::boundaryPaddingBarrel = discretize(12.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
   const int Materialway::boundaryPaddingEndcaps = discretize(10.0); 
@@ -1535,53 +1514,6 @@ namespace material {
                       << std::setw(9) << undiscretize(moduleSectionAssociations_.at(&module)->maxZ()) << ";\t^ " 
                       << std::setw(9) << undiscretize(moduleSectionAssociations_.at(&module)->maxR()) << std::endl;
           }
-
-          //route layer rod services
-
-          /* NO
-          for (
-               currSectionIter = layerRodSections_.at(currLayer_).getSections().begin();
-               currSectionIter != layerRodSections_.at(currLayer_).getSections().end();
-               ++currSectionIter) {
-            currLayer_->materialObject().copyServicesTo((*currSectionIter)->materialObject());
-            currLayer_->materialObject().copyLocalsTo((*currSectionIter)->materialObject());
-          }
-          */
-         
-          /* SI
-          RodSectionsStation& rodSectionsStation = layerRodSections_.at(currLayer_);
-          std::vector<Section*>& layerSections = rodSectionsStation.getSections();
-          for (currSectionIter = layerSections.begin(); currSectionIter != layerSections.end(); ++currSectionIter) {
-            Section* currSection = *currSectionIter;
-            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
-            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
-          }
-          */
-
-            /* BOH
-          for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
-            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
-            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
-            if (printGuard) {
-              std::cout << "popolo sez rod:\t< " 
-                        << std::setw(9) << undiscretize(currSection->minZ()) << ";\tv " 
-                        << std::setw(9) << undiscretize(currSection->minR()) << ";\t> " 
-                        << std::setw(9) << undiscretize(currSection->maxZ()) << ";\t^ " 
-                        << std::setw(9) << undiscretize(currSection->maxR()) << std::endl;
-            }
-          }
-           */
-
-          /* NO
-          RodSectionsStation& rodSectionsStation = layerRodSections_.at(currLayer_);
-          std::vector<Section*>& layerSections = rodSectionsStation.getSections();
-          for (Section* currSection : layerSections) {
-            currLayer_->materialObject().copyServicesTo(currSection->materialObject());
-            currLayer_->materialObject().copyLocalsTo(currSection->materialObject());
-          }
-          */
-
-          //layerRodSections_.at(currLayer_).getStation()->getServicesAndPass(currLayer_->materialObject());
           
           if (printGuard) {
             std::cout << "popolo staz:\t< " 
@@ -1635,8 +1567,6 @@ namespace material {
 						   massRatio,
 						   currSection->getLocation()
 						   );
-	    // disk.materialObject() is the materials info from cfg files (all double-disk).
-	    // currSection->materialObject() is the small section to which we want to assign a fraction of the materials.
 	  }
 
 	  // ROUTE SERVICES FROM DOUBLE-DISK   
@@ -1648,51 +1578,15 @@ namespace material {
 
       void visit(const Ring& ring) {
         if(firstRing) {
-          //for the mm
-          // for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-          //   ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodMM);
-          // }
-          //diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassRodMM);
-          //for the g/m
-       
-          // for(int i=0; i<ring.modules().size(); ++i) {
-          //   for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-          //     ring.materialObject().deployMaterialTo(currSection->materialObject(), unitsToPassRodGM);
-          //   }
-          //   diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject(), unitsToPassRodGM);
-          // }
-
           //TODO: ADD A WARNING IF MATERIAL DEFINED FOR RODS
-      
           firstRing = false;
         }
       }
-      /*
-      void visit(const Ring& ring) {
-        //route disk rod services
-        if(ring.minZwithHybrids() > 0) {
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            ring.materialObject().copyServicesTo(currSection->materialObject());
-            ring.materialObject().copyLocalsTo(currSection->materialObject());
-          }
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(ring.materialObject());
-        }
-      }
-      */
 
       void visit(const EndcapModule& module) {
         if (module.minZ() >= 0) {
           //route module services
           moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
-
-          /*
-          //route disk rod services
-          for (Section* currSection : diskRodSections_.at(currDisk_).getSections()) {
-            currDisk_->materialObject().copyServicesTo(currSection->materialObject());
-            currDisk_->materialObject().copyLocalsTo(currSection->materialObject());
-          }
-          diskRodSections_.at(currDisk_).getStation()->getServicesAndPass(currDisk_->materialObject());
-          */
         }
       }
     };
@@ -1700,41 +1594,6 @@ namespace material {
     ServiceVisitor v(moduleSectionAssociations_, layerRodSections_, diskRodSections_);
     tracker.accept(v);
   }
-
-  /*
-
-  void Materialway::routeModuleServices() {
-    for (std::pair<const DetectorModule* const, Section*>& pair : moduleSectionAssociations_) {
-      //pair.first->materialObject().routeServicesTo(pair.second->materialObject());
-      pair.second->getServicesAndPass(pair.first->materialObject());
-    }
-  }
-
-  void Materialway::routeRodMaterials() {
-    bool first = true;
-    for (std::pair<const Layer* const, RodSectionsStation> currAssociation : layerRodSections_) {
-      first = true;
-      for (Section* currSection : currAssociation.second.getSections()) {
-        //currAssociation.first->materialObject().copyServicesTo(currSection->materialObject());
-        if (first) {
-          currSection->getServicesAndPass(currAssociation.first->materialObject());
-          first = false;
-        }
-        currAssociation.first->materialObject().copyLocalsTo(currSection->materialObject());
-      }
-      currAssociation.second.getStation()->getServicesAndPass(currAssociation.first->materialObject());
-    }
-
-    for (std::pair<const Disk* const, RodSectionsStation> currAssociation : diskRodSections_) {
-      for (Section* currSection : currAssociation.second.getSections()) {
-        currAssociation.first->materialObject().copyServicesTo(currSection->materialObject());
-        currAssociation.first->materialObject().copyLocalsTo(currSection->materialObject());
-      }
-      currAssociation.second.getStation()->getServicesAndPass(currAssociation.first->materialObject());
-    }
-  }
-
-  */
 
   void Materialway::firstStepConversions() {
     for (Station* station : stationListFirst_) {
@@ -1772,10 +1631,6 @@ namespace material {
       int m_discID;
       std::string m_detName;
     public:
-      //std::map<BarrelModule*, int> mappaB;
-      //std::map<EndcapModule*, int> mappaE;
-      //int totB = 0;
-      //int totE = 0;
       CapsVisitor() {m_layerID=-1; m_discID=-1;}
       virtual ~CapsVisitor() {};
       void visit(Barrel& b)
@@ -1800,21 +1655,16 @@ namespace material {
         ModuleCap* cap = new ModuleCap(m,m_layerID);
         cap->setCategory(MaterialProperties::b_mod);
         cap->setDetName(m_detName);
-        //mappaB[&m] = 0;
-        //totB ++;
       }
       void visit(EndcapModule& m) {
         ModuleCap* cap = new ModuleCap(m,m_discID);
         cap->setCategory(MaterialProperties::e_mod);
         cap->setDetName(m_detName);
-        //mappaE[&m] = 0;
-        //totE ++;
       }
     };
 
     CapsVisitor v;
     tracker.accept(v);
-    //std::cout << "Barrel " << v.mappaB.size() << " = " << v.totB << "  ----  Endcap " << v.mappaE.size() << " = " << v.totE << std::endl;
   }
  
   void Materialway::duplicateSections() {
@@ -1824,12 +1674,7 @@ namespace material {
     for (Section* section : sectionsList_) {
       negativeSections.push_back(new Section(*section));
     }
-    
-    /*
-    std::for_each(sectionsList_.begin(), sectionsList_.end(), [negativeSections](Section* section) mutable {
-        negativeSections.push_back(new Section(*section));
-      });
-    */  
+
     std::for_each(negativeSections.begin(), negativeSections.end(), [](Section* section){
         section->minZ(-1 * section->minZ());
         section->maxZ(-1 * section->maxZ());
@@ -1844,18 +1689,7 @@ namespace material {
     //sections
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
-        //section->inactiveElement()->addLocalMass("Steel", 1000.0*section->inactiveElement()->getZLength());
-
         section->materialObject().populateMaterialProperties(*section->inactiveElement());
-        /*
-        double sectionMinZ = undiscretize(section->minZ());
-        double sectionMinR = undiscretize(section->minR());
-        double sectionMaxZ = undiscretize(section->maxZ());
-        double sectionMaxR = undiscretize(section->maxR());
-        double sectionLength = undiscretize(section->maxZ() - section->minZ());
-        double sectionArea = sectionLength * 2 * M_PI * sectionMinR;
-        weightDistribution.addTotalGrams(sectionMinZ, sectionMinR, sectionMaxZ, sectionMaxR, sectionLength, sectionArea, section->materialObject());
-        */
       } else {
         logUniqueERROR(inactiveElementError);
       }
@@ -1871,48 +1705,13 @@ namespace material {
       virtual ~ModuleVisitor() {}
 
       void visit(DetectorModule& module) {
-        //ModuleCap* moduleCap = module.getModuleCap();
-        //MaterialProperties* materialProperties = ModuleCap;
-        //module.materialObject().populateMaterialProperties(*materialProperties);
         module.materialObject().populateMaterialProperties(*module.getModuleCap());
-
-        //weightDistribution_.addTotalGrams(module.minZ(), module.minR(), module.maxZ(), module.maxR(), module.length(), module.area(), module.materialObject());
       }
     };
 
     ModuleVisitor visitor(weightDistribution);
     tracker.accept(visitor);
   }
-
-  /*
-  void Materialway::calculateMaterialValues(Tracker& tracker) {
-    //sections
-    for(Section* section : sectionsList_) {
-      if(section->inactiveElement() != nullptr) {
-        section->inactiveElement()->calculateTotalMass();
-        section->inactiveElement()->calculateRadiationLength();
-        section->inactiveElement()->calculateInteractionLength();
-      }
-    }
-
-    //modules
-    class ModuleVisitor : public GeometryVisitor {
-    public:
-      ModuleVisitor() {}
-      virtual ~ModuleVisitor() {}
-
-      void visit(DetectorModule& module) {
-        ModuleCap* moduleCap = module.getModuleCap();
-        moduleCap->calculateTotalMass();
-        moduleCap->calculateRadiationLength();
-        moduleCap->calculateInteractionLength();
-      }
-    };
-
-    ModuleVisitor visitor;
-    tracker.accept(visitor);
-  }
-  */
 
   void Materialway::buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface) {
     class SupportVisitor : public GeometryVisitor {
@@ -1944,11 +1743,6 @@ namespace material {
     
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
-        /*
-        if(section->inactiveElement()->getInteractionLength() < 0){
-          std::cout<<"ERRORE INT LEN"<<std::endl;
-        }
-        */
 	inactiveSurface.addBarrelServicePart(*section->inactiveElement());
         if((section->inactiveElement()->localMassCount() == 0)) {
           logWARNING(std::string(Form("Empty inactive element at r=%f, dr=%f, z=%f, dz=%f",
@@ -1961,14 +1755,6 @@ namespace material {
         logUniqueERROR(inactiveElementError);
       }
     }
-    /*
-    std::vector<InactiveElement>& elements = inactiveSurface.getBarrelServices();
-    for (InactiveElement& currElem : elements) {
-      if (currElem.getInteractionLength() < 0){
-        std::cout<<"ERRORE INT LEN"<<std::endl;
-      }
-    }
-    */
   }
 
   void Materialway::calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker) {
@@ -2003,22 +1789,6 @@ namespace material {
     ModuleVisitor visitor;
     tracker.accept(visitor);
   }
-
-  /*
-  InactiveElement* Materialway::buildOppositeInactiveElement(InactiveElement* inactiveElement) {
-    InactiveElement* newInactiveElement = new InactiveElement();
-    newInactiveElement->setVertical(inactiveElement->isVertical());
-    newInactiveElement->setFinal(inactiveElement->isFinal());
-    newInactiveElement->setZOffset(-1 * inactiveElement->getZOffset());
-    newInactiveElement->setZLength(inactiveElement->getZLength());
-    newInactiveElement->setInnerRadius(inactiveElement->getInnerRadius());
-    newInactiveElement->setRWidth(inactiveElement->getRWidth());
-    newInactiveElement->setTotalMass(inactiveElement->getTotalMass());
-    newInactiveElement->setLocalMass(inactiveElement->getLocalMass());
-
-    return newInactiveElement;
-  }
-  */
 
   //END Materialway
 

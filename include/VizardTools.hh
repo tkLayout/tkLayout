@@ -9,14 +9,10 @@
 /*
  * Assorted messages that may pop up
  */
-static const std::string msg_uninitialised = "Vizard::buildVisualization(am, is) needs to be called first to build the visual geometry objects.";
 static const std::string root_wrong = "Something went wrong creating output file. Existing geometry was not written to file.";
 static const std::string graph_wrong = "File stream reported error state: neighbour graph not written to file.";
 static const std::string exc_badalloc_graph = "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
 static const std::string graph_nowrite = "Neighbour graph was not written to file.";
-
-//clearStart="<tt>";
-//clearEnd="</tt>";
 
 // gStyle stuff
 static const int style_grid = 3;

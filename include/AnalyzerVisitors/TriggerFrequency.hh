@@ -111,18 +111,13 @@ public:
     int curCnt = triggerFrequencyCounts_[table][std::make_pair(row, col)]++;
     double curAvgTrue = triggerFrequencyAverageTrue_[table][std::make_pair(row, col)];
     double curAvgInteresting = triggerFrequencyInterestingParticleTrue_[table][std::make_pair(row, col)];
-    //double curAvgFake = triggerFrequencyAverageFake_[table][std::make_pair(row, col)];
     double curAvgMisfiltered = triggerFrequencyAverageMisfiltered_[table][std::make_pair(row, col)];
     double curAvgCombinatorial = triggerFrequencyAverageCombinatorial_[table][std::make_pair(row, col)];
-
-    //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
-    //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
     double highPtParticlesRate = pterr.getParticleFrequencyPerEventAbove(interestingPt_)*nMB_;
     double trueStubRate = pterr.getTriggerFrequencyTruePerEventAbove(interestingPt_)*nMB_; // highPtParticlesRate * triggerEfficiency
     double misfilteredStubRate = pterr.getTriggerFrequencyTruePerEventBelow(interestingPt_)*nMB_; // low-Pt particles improperly considered to be high-pT, due to pT measurement errors, for which we form stubs
     double combinatorialStubRate = pterr.getTriggerFrequencyFakePerEvent()*pow(nMB_,2); // stubs due to occupancy combinatorics - i.e. random pixels/strips turned on in the upper and lower sensors caused by separate tracks or secondaries which happen to fall within the trigger window
-    //double fakeStubRate = misfilteredStubRate + combinatorialStubRate; // combinatoricStubRate scales with the square of Nmb, while misfilteredStubRate scales linearly with Nmb
 
     curAvgTrue  += (trueStubRate - curAvgTrue)/(curCnt+1);
     curAvgInteresting += (highPtParticlesRate - curAvgInteresting)/(curCnt+1);
@@ -144,9 +139,6 @@ public:
     triggerDataBandwidths_[table][std::make_pair(row, col)] = triggerDataBandwidth;
     triggerFrequenciesPerEvent[table][std::make_pair(row, col)] = curAvgTotal;
 
-
-    //                currentTotalGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
-    //                currentTrueGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
 
     currentTotalHisto->SetBinContent(col, curAvgTotal*(1000/bunchSpacingNs_)*(100/module.area()));
     currentTrueHisto->SetBinContent(col, curAvgTrue*(1000/bunchSpacingNs_)*(100/module.area()));

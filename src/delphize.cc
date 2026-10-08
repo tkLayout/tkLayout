@@ -204,7 +204,6 @@ int main(int argc, char* argv[]) {
   while ((key = (TKey*)nextItem())) {
     addProfile(key->ReadObj());
   }
-  //inputFile->Close();
 
   // Check that non-zero profile map
   auto itPtProfiles = ptProfiles.begin();

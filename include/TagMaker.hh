@@ -87,7 +87,6 @@ public:
   static std::string makePosTag(const EndcapModule& m) {
     std::stringstream ss;
     ss << m.subdetectorName() << "R" << std::setfill('0') << std::setw(2) << m.ring();
-    //<< "D" << m.disk();
     return ss.str();
   }
 };

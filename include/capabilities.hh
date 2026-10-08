@@ -31,21 +31,7 @@ public:
   bool placed() const { return placed_; }
   void placed(bool state) { placed_ = state; }
 };
-/*
-typedef string IdentifiableType;
 
-template<class T>
-class Identifiable {
-  const string base_;
-  T::IdType myid_;
-public:
-  Identifiable() : base_(typeid(T).name()), myid_("NOID") {}
-  //template<class U> void myid(U id) { myid_ = any2str(id); }
-  void myid(T::IdType id) { myid_ = id; }
-  T::IdType myid() const { return myid_; }
-  IdentifiableType fullid() const { return base_ + "(" + any2str(myid()) + ")"; }
-};
-*/
 template<class T>
 class Identifiable {
   T myid_;
