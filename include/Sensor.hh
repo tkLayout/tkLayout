@@ -98,8 +98,6 @@ public:
   double alveolaWidth() const;
   double alveolaLength() const;
 
-  double sensorNormalOffset() const;             // normal offset of the sensor center, in the frame of reference of the module
-  double sensorXOffset() const;
   const XYZVector& center() const { return hitPoly().getCenter(); }  // center of the sensor
   const Polygon3d<4>& hitPoly() const;           // sensor rectangle (in plane containing the sensor center)
   const Polygon3d<4>& hitMidPoly() const;        // losange formed by the mid-points of hitPoly

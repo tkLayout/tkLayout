@@ -1,6 +1,9 @@
 #include "Sensor.hh"
 #include "DetectorModule.hh"
 
+#include <memory>
+#include <Math/Vector3Dfwd.h>
+
 void Sensor::check() {
   PropertyObject::check();
   
@@ -10,50 +13,70 @@ void Sensor::check() {
   if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegments and stripLengthEstimate can be specified");
 }
 
-double Sensor::sensorNormalOffset() const {
-  double offset;
-  if (parent_->numSensors() <= 1) offset = 0.;
-  else {
-    if (myid() == 1) offset = -parent_->dsDistance()/2.;
-    else offset = parent_->dsDistance()/2.;
-  }
-  return offset;
-}
-
-double Sensor::sensorXOffset() const {
-  double offset;
-  if (parent_->numSensors() <= 1) offset = 0.;
-  else {
-    if (myid() == 1) offset = -parent_->offsetForSensors();
-    else offset = parent_->offsetForSensors();
-  }
-  return offset;
-}
-
-
 const Polygon3d<4>& Sensor::hitPoly() const {
   if (hitPoly_) return *hitPoly_;
-  double offset = sensorNormalOffset();
-  hitPoly_ = CoordinateOperations::computeTranslatedPolygon(parent_->basePoly(), offset);
-  // Special case for split-sensor modules: sensor's polygon is reduced and shifted along local Y
-  if (parent_->numSensors() == 2 && parent_->sensorLayout() == SensorLayout::MONO) {
-    const XYZVector unitY(parent_->getLocalY());
 
-    // Resizing the sensor polygon wrt the module polygon, accounting for the dead space between sensors
-    double moduleLength = parent_->length();
-    double deadLength = parent_->centralDeadAreaLength();
-    double sensorLength = moduleLength / parent_->numSensors() - deadLength / 2.;
-    Polygon3d<4> *poly = CoordinateOperations::computeResizedPolygon(*hitPoly_, unitY, sensorLength/moduleLength);
+  const int numSensors = parent_->numSensors();
 
-    // UPPER sensor is shifted up in the *local* Y direction
+  const Polygon3d<4>& basePoly = parent_->basePoly();
+
+  // Single-sensor module, no offset and/or polygon resizing required
+  if (numSensors <= 1) {
+    if (numSensors <= 0)
+      logWARNING("Sensor::hitPoly Warning: DetectorModule::numSensors() <= 0");
+    hitPoly_ = new Polygon3d<4>(basePoly);
+  }
+
+  // Special case for split-sensor modules
+  else if (numSensors == 2 && parent_->sensorLayout() == SensorLayout::MONO) {
+    // Account for the dead space between sensors when resizing the module polygon
+    const double moduleLength = parent_->length();
+    const double deadLength   = parent_->centralDeadAreaLength();
+    const double sensorLength = moduleLength / numSensors - 0.5 * deadLength;
+    const double scaleFactor  = sensorLength / moduleLength;
+
+    // Module center and unit local Y
+    const ROOT::Math::XYZVector moduleCenter = parent_->center();
+    const ROOT::Math::XYZVector localY = (basePoly.getVertex(0) - basePoly.getVertex(3)).Unit();
+
+    // Translate the sensor along the local Y
     double offsetY = (moduleLength - sensorLength) * 0.5;
     offsetY = (innerOuter() == SensorPosition::UPPER) ? offsetY : -offsetY;
+    ROOT::Math::XYZVector sensorCenter = moduleCenter + offsetY * localY;
 
-    // Apply the shift along the local Y direction and update the polygon
-    poly->translate(unitY*offsetY);
-    delete hitPoly_;
-    hitPoly_ = poly;
+    // Resize the Y-length of the module polygon
+    std::unique_ptr<Polygon3d<4>> newPoly = std::make_unique<Polygon3d<4>>();
+    for (const ROOT::Math::XYZVector* vtx = basePoly.begin(); vtx != basePoly.end(); ++vtx) {
+      // Distance vector from the module center to the vertex
+      ROOT::Math::XYZVector d = *vtx - moduleCenter;
+
+      // Projection of "d" along the local Y
+      ROOT::Math::XYZVector projY = d.Dot(localY) * localY;
+
+      // Start with original "d", subtract the original Y, and add the scaled Y
+      ROOT::Math::XYZVector scaledVtx = d + projY * (scaleFactor - 1.0);
+
+      // Update the vertex position and add it to the new polygon
+      *newPoly << (sensorCenter + scaledVtx);
+    }
+
+    hitPoly_ = newPoly.release();
   }
+
+  // General 3D module case
+  else {
+    // Calculate the translation along the local Z
+    double offsetZ = 0.5 * parent_->dsDistance();
+    offsetZ = (innerOuter() == SensorPosition::UPPER) ? offsetZ : -offsetZ;
+    ROOT::Math::XYZVector extentZ = offsetZ * parent_->normal();
+
+    // Apply the translation
+    std::unique_ptr<Polygon3d<4>> newPoly = std::make_unique<Polygon3d<4>>(basePoly);
+    newPoly->translate(extentZ);
+
+    hitPoly_ = newPoly.release();
+  }
+
   return *hitPoly_;
 }
 

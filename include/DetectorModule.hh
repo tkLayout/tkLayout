@@ -332,11 +332,11 @@ public:
 
   bool flipped() const { return decorated().flipped(); } 
   bool flipped(bool newFlip) {
-    if (newFlip && numSensors() > 1) {
-      sensors_.front().innerOuter(SensorPosition::UPPER);
-      sensors_.back().innerOuter(SensorPosition::LOWER);
-    }
-    return decorated().flipped(newFlip);
+    bool ret = decorated().flipped(newFlip);
+
+    clearSensorPolys();
+
+    return ret;
   } 
   ModuleShape shape() const { return decorated().shape(); }
   ////////
@@ -345,6 +345,33 @@ public:
   double minZ() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minZ); }
   double maxR() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxR); }
   double minR() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minR); }
+
+  // Hybrid-expanded module dimensions. Shared by extremaWithHybrids() and ModuleComplex
+  // (Extractor) so the two stay in sync. Args are explicit so callers can pass variants
+  // (e.g. the double-sensor pixel length).
+  static double computeExpandedModWidth(double moduleWidth, double serviceHybridWidth,
+                                        double deadAreaExtraWidth, double chipNegativeXExtraWidth,
+                                        double chipPositiveXExtraWidth) {
+    const double totalServiceHybridWidth = 2. * serviceHybridWidth;                              // OT case
+    const double totalDeadAreaExtraWidth = 2. * deadAreaExtraWidth;                              // IT case: around sensor
+    const double totalChipExtraWidth = 2. * MAX(chipNegativeXExtraWidth, chipPositiveXExtraWidth); // IT case: around chip
+    return moduleWidth + totalServiceHybridWidth + MAX(totalDeadAreaExtraWidth, totalChipExtraWidth);
+  }
+  static double computeExpandedModLength(double moduleLength, double frontEndHybridWidth,
+                                         double deadAreaExtraLength) {
+    return moduleLength + 2. * frontEndHybridWidth + 2. * deadAreaExtraLength;
+  }
+  static double computeExpandedModThickness(bool isPixel, bool isTiming, double dsDistance,
+                                            double sensorThickness, double supportPlateThickness,
+                                            double chipThickness, double hybridThickness) {
+    if (!isPixel) {
+      // if (!isTiming)
+      return dsDistance + sensorThickness + supportPlateThickness;
+      // else  // Legacy formula, likely incorrect
+      //   return sensorThickness + 2.0 * MAX(supportPlateThickness, hybridThickness);
+    }
+    return sensorThickness + chipThickness + hybridThickness;
+  }
 
   std::map<std::string, double> extremaWithHybrids() const;
   double minZwithHybrids() const { return extremaWithHybrids()["minZ"]; }
@@ -368,19 +395,12 @@ public:
   double thetaAperture() const { return maxTheta() - minTheta(); }
 
   // Get local X orientation on sensor plane. Ie, for barrel modules, the Lorentz drift orientation!!
-  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
   const TVector3 getLocalX() const {
-    XYZVector localX = basePoly().getVertex(3) - basePoly().getVertex(0);
-    if (flipped()) { localX *= -1; } // a flip operation does not move the polygon vertexes, hence desserves special treatment.
-    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localX *= -1; }
-    return CoordinateOperations::convertCoordVectorToTVector3(localX).Unit();
+    return CoordinateOperations::convertCoordVectorToTVector3(basePoly().getVertex(0) - basePoly().getVertex(1)).Unit();
   }
   // Get local Y orientation on sensor plane.
-  // NB: This is not garanteed at all to match CMSSW frame of reference orientation, which is independent.
   const TVector3 getLocalY() const { 
-    XYZVector localY = basePoly().getVertex(0) - basePoly().getVertex(1);
-    if ( fabs(tiltAngle() - M_PI/2.) < insur::geom_zero || !isPixelModule() ) { localY *= -1; }
-    return CoordinateOperations::convertCoordVectorToTVector3(localY).Unit();
+    return CoordinateOperations::convertCoordVectorToTVector3(basePoly().getVertex(0) - basePoly().getVertex(3)).Unit();
   }
 
   const Sensors& sensors() const { return sensors_; }
