@@ -2683,36 +2683,34 @@ namespace insur {
         std::map<int, std::vector<double>> yaw_one;
         std::map<int, std::vector<double>> yaw_two;
 
-        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
-          if(!iiter->getModule().inRegularRing()){ //Don't need to check this for every endcap ring, only modules that are NOT in a regular ring
-            if(phi_one.count(iiter->getModule().uniRef().ring)==0){
-              phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
+        // PRE-PASS: Unconditionally collect X, Y, Z, and Yaw for all modules.
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+            int modRing = iiter->getModule().uniRef().ring;
+            
+            if (phi_one.count(modRing) == 0) {
+                phi_one[modRing]    = std::vector<double>();
+                radius_one[modRing] = std::vector<double>();
+                yaw_one[modRing]    = std::vector<double>();
             } 
-            if(radius_one.count(iiter->getModule().uniRef().ring)==0){
-              radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
-            } 
-            if(yaw_one.count(iiter->getModule().uniRef().ring)==0){
-              yaw_one[iiter->getModule().uniRef().ring] = std::vector<double>();
-            } 
-            if(phi_two.count(iiter->getModule().uniRef().ring)==0){
-              phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
+            if (phi_two.count(modRing) == 0) {
+                phi_two[modRing]    = std::vector<double>();
+                radius_two[modRing] = std::vector<double>();
+                yaw_two[modRing]    = std::vector<double>();
             }
-            if(radius_two.count(iiter->getModule().uniRef().ring)==0){
-              radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
-            }
-            if(yaw_two.count(iiter->getModule().uniRef().ring)==0){
-              yaw_two[iiter->getModule().uniRef().ring] = std::vector<double>();
-            }
-            if(iiter->getModule().uniRef().phi%2 == 1){
-              phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
-              radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              yaw_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
+
+            double phi_deg = iiter->getModule().center().Phi() * 180. / M_PI;
+            double radius  = iiter->getModule().center().Rho();
+            double yaw_deg = iiter->getModule().yawAngle() * 180. / M_PI;
+
+            if (iiter->getModule().uniRef().phi % 2 == 1) {
+                phi_one[modRing].push_back(phi_deg);
+                radius_one[modRing].push_back(radius);
+                yaw_one[modRing].push_back(yaw_deg);
             } else {
-              phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
-              radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              yaw_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
+                phi_two[modRing].push_back(phi_deg);
+                radius_two[modRing].push_back(radius);
+                yaw_two[modRing].push_back(yaw_deg);
             }
-          }
         }
 
         // LOOP ON MODULE CAPS
@@ -3097,76 +3095,106 @@ namespace insur {
             rspec.partselectors.push_back(logic.name_tag);
             rspec.moduletypes.push_back(minfo_zero);
 
-	    // Ring Surface 1 (half the modules)
-	    alg.name = xml_trackerring_algo;
-            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
-            alg.parent = logic.shape_tag;
-            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
-            pconverter.str(""); pconverter << (myRingInfo.numModules / 2);
-            alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-            alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter.str(""); pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << myRingInfo.radiusMid << "*mm";
-            alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-            pconverter.str("");
-            if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
-              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
-              pconverter.str("");
-            }
-	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface1ZMid - myRingInfo.zMid));
-	    pconverter.str(""); pconverter << myRingInfo.isDiskAtPlusZEnd;
-	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	    pconverter.str("");
-	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter.str(""); pconverter << myRingInfo.surface1IsFlipped;
-	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	    pconverter.str("");
-            a.push_back(alg);
-            alg.parameters.clear();
+	    // Lambda to generate and cache explicit endcap module rotations matching DDTrackerRingAlgo math
+            auto registerEndcapModuleRotation = [&](double phi_deg, double yaw_deg, bool isZPlus, bool isFlipped) -> std::string {
+                // Normalize phi to 0-360 for consistent naming
+                double norm_phi = std::fmod(phi_deg, 360.0);
+                if (norm_phi < 0.0) norm_phi += 360.0;
+                
+                std::ostringstream rotName;
+                rotName << "EMod_Phi" << static_cast<int>(std::round(norm_phi * 10.0))
+                        << "_Yaw"   << static_cast<int>(std::round(yaw_deg * 10.0))
+                        << (isZPlus ? "_ZPlus" : "_ZMinus")
+                        << (isFlipped ? "_Flipped" : "");
+                
+                const std::string name = rotName.str();
+                if (r.find(name) == r.end()) {
+                    Rotation rot;
+                    rot.name = name;
+                    
+                    // Exact algebraic expansion of CMSSW's R_global = R_phi * R_tilt * R_flip * R_yaw
+                    // where tilt is 90 degrees for endcap rings.
+                    double phix = 0.0, phiy = 0.0, thetaz = 0.0;
+                    
+                    if (isZPlus) {
+                        if (!isFlipped) {
+                            phix = phi_deg + yaw_deg + 90.0;
+                            phiy = phi_deg + yaw_deg + 180.0;
+                            thetaz = 0.0;
+                        } else {
+                            phix = phi_deg - yaw_deg - 90.0;
+                            phiy = phi_deg - yaw_deg + 180.0;
+                            thetaz = 180.0;
+                        }
+                    } else { // isZMinus
+                        if (!isFlipped) {
+                            phix = phi_deg - yaw_deg + 90.0;
+                            phiy = phi_deg - yaw_deg;
+                            thetaz = 180.0;
+                        } else {
+                            phix = phi_deg + yaw_deg - 90.0;
+                            phiy = phi_deg + yaw_deg;
+                            thetaz = 0.0;
+                        }
+                    }
 
-	    // Ring Surface 2 (half the modules)
-	    alg.name = xml_trackerring_algo;
-            if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
-            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
-            pconverter.str(""); pconverter << (myRingInfo.numModules / 2);
-            alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-            alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter.str(""); pconverter << myRingInfo.surface2StartPhi * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << myRingInfo.radiusMid << "*mm";
-            alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-            pconverter.str("");
-            if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
-              alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
-              pconverter.str("");
-              alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
-              pconverter.str("");
+                    // Keep values cleanly within 0-360 range
+                    rot.thetax = 90.0; rot.phix = std::fmod(phix + 3600.0, 360.0);
+                    rot.thetay = 90.0; rot.phiy = std::fmod(phiy + 3600.0, 360.0);
+                    rot.thetaz = thetaz; rot.phiz = 0.0;
+                    
+                    r.insert(std::make_pair(name, rot));
+                }
+                return name;
+            };
+
+            // Lambda to emit 1-entry XYZPosAlgo blocks for a surface
+            auto emitModulePlacement = [&](int startCopyNo, double surfaceZMid, bool isZPlus, bool isFlipped,
+                                           const std::vector<double>& phis,
+                                           const std::vector<double>& radiuses,
+                                           const std::vector<double>& yaws) {
+                for (size_t i = 0; i < phis.size(); ++i) {
+                    double phi_rad = phis[i] * (M_PI / 180.0);
+                    double rad = radiuses[i];
+                    double x = rad * std::cos(phi_rad);
+                    double y = rad * std::sin(phi_rad);
+                    double z = surfaceZMid - myRingInfo.zMid; 
+
+                    std::string rotName = registerEndcapModuleRotation(phis[i], yaws[i], isZPlus, isFlipped);
+                    // Endcap modules are never at identity orientation (always tilted 90 degrees), 
+                    // so we do not need the "NULL" fallback check used in the barrel.
+                    std::string rotEntry = trackerXmlTags.nspace + ":" + rotName;
+
+                    alg.name = xml_xyzpos_algo;
+                    alg.parent = logic.shape_tag;
+                    alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+
+                    pconverter.str(""); pconverter << (startCopyNo + i * 2);
+                    alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+                    pconverter.str(""); // Crucial system-wide reset
+                    alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+
+                    alg.parameters.push_back(arbitraryLengthVector("XPositions", std::vector<double>{x}));
+                    alg.parameters.push_back(arbitraryLengthVector("YPositions", std::vector<double>{y}));
+                    alg.parameters.push_back(arbitraryLengthVector("ZPositions", std::vector<double>{z}));
+                    alg.parameters.push_back(arbitraryLengthStringVector("Rotations", std::vector<std::string>{rotEntry}));
+
+                    a.push_back(alg);
+                    alg.parameters.clear();
+                }
+            };
+
+            // Emit Surface 1
+            if (phi_one[ringIndex].size() > 0) {
+                emitModulePlacement(1, myRingInfo.surface1ZMid, myRingInfo.isDiskAtPlusZEnd, myRingInfo.surface1IsFlipped,
+                                    phi_one[ringIndex], radius_one[ringIndex], yaw_one[ringIndex]);
             }
-	    alg.parameters.push_back(vectorParam(0, 0, myRingInfo.surface2ZMid - myRingInfo.zMid));
-	    pconverter.str(""); pconverter << myRingInfo.isDiskAtPlusZEnd;
-	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	    pconverter.str("");
-	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter.str(""); pconverter << myRingInfo.surface2IsFlipped;
-	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	    pconverter.str("");
-            a.push_back(alg);
-            alg.parameters.clear();
+            
+            // Emit Surface 2
+            if (phi_two[ringIndex].size() > 0) {
+                emitModulePlacement(2, myRingInfo.surface2ZMid, myRingInfo.isDiskAtPlusZEnd, myRingInfo.surface2IsFlipped,
+                                    phi_two[ringIndex], radius_two[ringIndex], yaw_two[ringIndex]);
+            }
           }
         }
 
