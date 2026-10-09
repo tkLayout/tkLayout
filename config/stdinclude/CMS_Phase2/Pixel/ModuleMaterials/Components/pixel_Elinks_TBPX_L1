@@ -10,6 +10,7 @@ Component {
     quantity 1.547
     unit g/m
     targetVolume 1
+    
   }
   // Two insulations
   Element {

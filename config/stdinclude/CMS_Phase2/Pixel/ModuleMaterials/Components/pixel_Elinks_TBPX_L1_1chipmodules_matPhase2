@@ -7,14 +7,16 @@ Component {
   // Two conductors
   Element {
     elementName Cu_Elinks_TBPX_L1_1chipmodules
-    quantity 0.7735
+    quantity 0.507 // it was 0.7735
     unit g/m
     targetVolume 1
-  }
+//Angela: it should be 1.015/2 = 0.507
+
+}
   // Two insulations
   Element {
     elementName Kapton
-    quantity 0.067
+    quantity 0.067 // it was 0.067
     unit g/m
     targetVolume 1
   }

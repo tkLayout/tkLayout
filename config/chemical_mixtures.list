@@ -305,8 +305,12 @@ FPIX_PE	                 0.95	                    PE:1
 # different density from PE!!
 TEDD_Steel	             7.8	                 Steel:1
 
+#Ar2020Resin 1.12 C:21 H:24 O:4
+#Ar2020Hardener 0.95 C:4 H:13 N:3
 
-
+Araldite2020 1.1 Ar2020Resin:0.741 Ar2020Hardener:0.259
+#Angela
+Prepreg 1.08  HL832_A:0.75 HL832_B:0.25
 
 
 
