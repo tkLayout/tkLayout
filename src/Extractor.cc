@@ -20,6 +20,15 @@
 
 namespace insur {
 
+  static double vecTheta(const std::array<double, 3>& v) {
+    double z = std::max(-1.0, std::min(1.0, v[2]));
+    return std::acos(z) * (180.0 / M_PI);
+  }
+  static double vecPhi(const std::array<double, 3>& v) {
+    double p = std::atan2(v[1], v[0]) * (180.0 / M_PI);
+    return (p < 0.0) ? p + 360.0 : p;
+  }
+
   // Helper function to calculate and store the yaw-adjusted rotation for barrel modules
   static std::string getBarrelModuleRotation(std::map<std::string, Rotation>& r, bool isPixelTracker, bool isFlipped, double yaw) {
     // If there is no yaw, fallback to the standard static tags
@@ -63,18 +72,6 @@ namespace insur {
         ny_dir[i] = -sinY * x_dir[i] + cosY * y_dir[i];
     }
 
-    // Lambdas to convert Cartesian vectors back into CMSSW spherical coordinates
-    auto getTheta = [](const std::array<double, 3>& v) {
-        double z = v[2];
-        if (z > 1.0) z = 1.0;
-        if (z < -1.0) z = -1.0;
-        return std::acos(z) * (180.0 / M_PI);
-    };
-    auto getPhi = [](const std::array<double, 3>& v) {
-        double p = std::atan2(v[1], v[0]) * (180.0 / M_PI);
-        return (p < 0.0) ? p + 360.0 : p;
-    };
-
     // Construct a unique rotation name 
     std::ostringstream rotName;
     rotName << (isPixelTracker ? "PX" : "OT")
@@ -86,9 +83,9 @@ namespace insur {
     if (r.find(name) == r.end()) {
         Rotation rot;
         rot.name = name;
-        rot.thetax = getTheta(nx_dir); rot.phix = getPhi(nx_dir);
-        rot.thetay = getTheta(ny_dir); rot.phiy = getPhi(ny_dir);
-        rot.thetaz = getTheta(z_dir);  rot.phiz = getPhi(z_dir);
+        rot.thetax = vecTheta(nx_dir); rot.phix = vecPhi(nx_dir);
+        rot.thetay = vecTheta(ny_dir); rot.phiy = vecPhi(ny_dir);
+        rot.thetaz = vecTheta(z_dir);  rot.phiz = vecPhi(z_dir);
         r.insert(std::make_pair(name, rot));
     }
     return name;
@@ -926,9 +923,6 @@ namespace insur {
 	unflippedLadderName << trackerXmlTags.tracker << xml_layer << layer << xml_rod << xml_unflipped; // e.g. OTLayer1RodUnflipped
       }
 
-      double firstPhiRodMeanPhi = 0;
-      double nextPhiRodMeanPhi = 0;
-
       std::map<std::tuple<int, int, int, int >, std::string > timingModuleNames;
       bool newTimingModuleType = true;
       int timingModuleCopyNumber = 0;
@@ -1129,9 +1123,6 @@ namespace insur {
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {
-
-	    firstPhiRodMeanPhi = iiter->getModule().center().Phi();
-
             std::ostringstream ringname;
 	    ringname << lname.str() << xml_ring << modRing;
 
@@ -1242,7 +1233,6 @@ namespace insur {
 
 	  if (iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
-	      nextPhiRodMeanPhi = iiter->getModule().center().Phi();
 	      if (isPixelTracker) {
 		pos.parent_tag = trackerXmlTags.nspace + ":" + unflippedLadderName.str();
 		pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
@@ -1854,10 +1844,6 @@ namespace insur {
 
       // rods in layer algorithm(s)
 
-      // Get inner / outer ladders radii
-      const double innerLadderCenterRadius = MIN(firstPhiRodRadius, nextPhiRodRadius);  // inner radius
-      const double outerLadderCenterRadius = MAX(firstPhiRodRadius, nextPhiRodRadius); // outer radius
-
       // OUTER TRACKER
       if (!isPixelTracker) {
 
@@ -1885,42 +1871,9 @@ namespace insur {
           return name;
         };
 
-        // NON-TILTED OT LAYERS: one DDTrackerXYZPosAlgo block per rod.
+        // One DDTrackerXYZPosAlgo block per rod (straight and tilted flat-part share the same loop).
         // copy number = phi index, matching the PhiAltAlgo convention.
-        // One-block-per-yaw-group with IncrCopyNo=numGroups was wrong: yaw groups are
-        // NOT uniformly interleaved in the real geometry (e.g. L1 has AA-BB-AA-BB pairs),
-        // so the arithmetic copy-number sequence would overlap or skip phi indices.
-        if (!isTilted && !otRodPlacementByPhiIdx.empty()) {
-        for (const auto& [phiIdx, data] : otRodPlacementByPhiIdx) {
-          const double yawDeg = std::round(data.yaw * 180.0 / M_PI);
-          const std::string& templateName = yawDegToTemplateName.at(yawDeg);
-          const std::string rotName = registerRodPhiRotation(data.centerPhi);
-          const std::string rotEntry = (rotName == "NULL") ? "NULL"
-                                                           : trackerXmlTags.nspace + ":" + rotName;
-          alg.name   = xml_xyzpos_algo;
-          alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-          alg.parameters.push_back(stringParam(xml_childparam,
-                                               trackerXmlTags.nspace + ":" + templateName));
-          pconverter.str(""); pconverter << phiIdx;
-          alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
-          alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-          alg.parameters.push_back(arbitraryLengthVector("XPositions",
-              std::vector<double>{data.centerRadius * std::cos(data.centerPhi)}));
-          alg.parameters.push_back(arbitraryLengthVector("YPositions",
-              std::vector<double>{data.centerRadius * std::sin(data.centerPhi)}));
-          alg.parameters.push_back(arbitraryLengthVector("ZPositions",
-              std::vector<double>{0.0}));
-          alg.parameters.push_back(arbitraryLengthStringVector("Rotations",
-              std::vector<std::string>{rotEntry}));
-          a.push_back(alg);
-          alg.parameters.clear();
-        }
-        } // end !isTilted XYZPosAlgo path
-
-        // TILTED OT LAYERS: flat-part rods via DDTrackerXYZPosAlgo (per-rod blocks).
-        // Falls back to DDTrackerPhiAltAlgo only when no flat-part modules were found.
-        else if (isTilted) {
-          if (!otRodPlacementByPhiIdx.empty()) {
+        if (!otRodPlacementByPhiIdx.empty()) {
           for (const auto& [phiIdx, data] : otRodPlacementByPhiIdx) {
             const double yawDeg = std::round(data.yaw * 180.0 / M_PI);
             const std::string& templateName = yawDegToTemplateName.at(yawDeg);
@@ -1944,95 +1897,6 @@ namespace insur {
             a.push_back(alg);
             alg.parameters.clear();
           }
-          } else { // fallback: no flat-part modules found, keep PhiAltAlgo
-          pconverter.str("");  // clear any residual state from prior loops
-          if (!hasPhiForbiddenRanges) {
-            alg.name = xml_phialt_algo;
-            alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-            pconverter.str(""); pconverter << trackerXmlTags.nspace + ":" + ladderName.str();
-            alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
-            const bool isFirstPhiRodAtInnerRadius = (fabs(firstPhiRodRadius - innerLadderCenterRadius) < xml_epsilon);
-            const double algoStartPhi = (isFirstPhiRodAtInnerRadius ? firstPhiRodMeanPhi : nextPhiRodMeanPhi);
-            pconverter.str("");
-            pconverter << algoStartPhi * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter.str(""); pconverter << innerLadderCenterRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-            pconverter.str("");
-            pconverter << outerLadderCenterRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-            pconverter.str(""); pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
-            alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-            a.push_back(alg);
-            alg.parameters.clear();
-          } else {
-            int numRods = lagg.getBarrelLayers()->at(layer - 1)->numRods();
-            int forbiddenPhiUpperAIndex = numRods / 2;
-            int forbiddenPhiLowerBIndex = forbiddenPhiUpperAIndex + 1;
-            alg.name = xml_phialt_algo;
-            alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-            pconverter.str(""); pconverter << trackerXmlTags.nspace + ":" + ladderName.str();
-            alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
-            pconverter.str("");
-            pconverter << phiForbiddenRanges.at(1) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << (phiForbiddenRanges.at(forbiddenPhiUpperAIndex) - phiForbiddenRanges.at(1)) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << firstPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-            pconverter.str("");
-            pconverter << nextPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-            pconverter.str(""); pconverter << numRods / 2;
-            alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-            a.push_back(alg);
-            alg.parameters.clear();
-            alg.name = xml_phialt_algo;
-            alg.parent = trackerXmlTags.nspace + ":" + lname.str();
-            pconverter.str("");
-            pconverter << trackerXmlTags.nspace + ":" + ladderName.str();
-            alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
-            pconverter.str("");
-            pconverter << phiForbiddenRanges.at(forbiddenPhiLowerBIndex) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << (phiForbiddenRanges.at(numRods) - phiForbiddenRanges.at(forbiddenPhiLowerBIndex)) * 180. / M_PI << "*deg";
-            alg.parameters.push_back(numericParam(xml_rangeangle, pconverter.str()));
-            pconverter.str("");
-            pconverter << firstPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-            pconverter.str("");
-            pconverter << nextPhiRodRadius << "*mm";
-            alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-            pconverter.str("");
-            alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-            pconverter.str(""); pconverter << numRods / 2;
-            alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-            pconverter.str("");
-            pconverter << forbiddenPhiLowerBIndex;
-            alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
-            alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-            a.push_back(alg);
-            pconverter.str("");
-            alg.parameters.clear();
-          }
-          } // end fallback PhiAltAlgo
         }
       }
 
@@ -2287,22 +2151,11 @@ namespace insur {
                       Mat3 tiltCombined = isFlipped ? mult(rTilt, rFlip) : rTilt;
                       Mat3 globalRotMat = mult(mult(rPhi, tiltCombined), rYaw);
 
-                      auto getTheta = [](const std::array<double, 3>& v) {
-                          double z = v[2];
-                          if (z > 1.0) z = 1.;
-						  if (z < -1.0) z = -1.0;
-                          return std::acos(z) * 180.0 / M_PI;
-                      };
-                      auto getPhi = [](const std::array<double, 3>& v) {
-                          double p = std::atan2(v[1], v[0]) * 180.0 / M_PI;
-                          return (p < 0.0) ? p + 360.0 : p;
-                      };
-
                       Rotation rot;
                       rot.name = name;
-                      rot.thetax = getTheta(globalRotMat[0]); rot.phix = getPhi(globalRotMat[0]);
-                      rot.thetay = getTheta(globalRotMat[1]); rot.phiy = getPhi(globalRotMat[1]);
-                      rot.thetaz = getTheta(globalRotMat[2]); rot.phiz = getPhi(globalRotMat[2]);
+                      rot.thetax = vecTheta(globalRotMat[0]); rot.phix = vecPhi(globalRotMat[0]);
+                      rot.thetay = vecTheta(globalRotMat[1]); rot.phiy = vecPhi(globalRotMat[1]);
+                      rot.thetaz = vecTheta(globalRotMat[2]); rot.phiz = vecPhi(globalRotMat[2]);
                       
                       r.insert(std::make_pair(name, rot));
                   }
@@ -2419,6 +2272,38 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
    */
+  // Compute and cache an explicit endcap module rotation matching DDTrackerRingAlgo math.
+  // Captures only the rotation map; shared by analyseDiscs and analyseDiscsAndSubDiscs.
+  static std::string registerEndcapModuleRotation(std::map<std::string, Rotation>& r,
+                                                  double phi_deg, double yaw_deg,
+                                                  bool isZPlus, bool isFlipped) {
+    double norm_phi = std::fmod(phi_deg, 360.0);
+    if (norm_phi < 0.0) norm_phi += 360.0;
+    std::ostringstream rotName;
+    rotName << "EMod_Phi" << static_cast<int>(std::round(norm_phi * 10.0))
+            << "_Yaw"    << static_cast<int>(std::round(yaw_deg * 10.0))
+            << (isZPlus ? "_ZPlus" : "_ZMinus")
+            << (isFlipped ? "_Flipped" : "");
+    const std::string name = rotName.str();
+    if (r.find(name) == r.end()) {
+      double phix = 0.0, phiy = 0.0, thetaz = 0.0;
+      if (isZPlus) {
+        if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 0.0;   }
+        else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 180.0; }
+      } else {
+        if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg;         thetaz = 180.0; }
+        else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg;         thetaz = 0.0;   }
+      }
+      Rotation rot;
+      rot.name = name;
+      rot.thetax = 90.0; rot.phix = std::fmod(phix + 3600.0, 360.0);
+      rot.thetay = 90.0; rot.phiy = std::fmod(phiy + 3600.0, 360.0);
+      rot.thetaz = thetaz; rot.phiz = 0.0;
+      r.emplace(name, rot);
+    }
+    return name;
+  }
+
   void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags,
                                std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so,
 			       std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
@@ -2994,58 +2879,6 @@ namespace insur {
             rspec.partselectors.push_back(logic.name_tag);
             rspec.moduletypes.push_back(minfo_zero);
 
-	    // Lambda to generate and cache explicit endcap module rotations matching DDTrackerRingAlgo math
-            auto registerEndcapModuleRotation = [&](double phi_deg, double yaw_deg, bool isZPlus, bool isFlipped) -> std::string {
-                // Normalize phi to 0-360 for consistent naming
-                double norm_phi = std::fmod(phi_deg, 360.0);
-                if (norm_phi < 0.0) norm_phi += 360.0;
-                
-                std::ostringstream rotName;
-                rotName << "EMod_Phi" << static_cast<int>(std::round(norm_phi * 10.0))
-                        << "_Yaw"   << static_cast<int>(std::round(yaw_deg * 10.0))
-                        << (isZPlus ? "_ZPlus" : "_ZMinus")
-                        << (isFlipped ? "_Flipped" : "");
-                
-                const std::string name = rotName.str();
-                if (r.find(name) == r.end()) {
-                    Rotation rot;
-                    rot.name = name;
-                    
-                    // Exact algebraic expansion of CMSSW's R_global = R_phi * R_tilt * R_flip * R_yaw
-                    // where tilt is 90 degrees for endcap rings.
-                    double phix = 0.0, phiy = 0.0, thetaz = 0.0;
-                    
-                    if (isZPlus) {
-                        if (!isFlipped) {
-                            phix = phi_deg + yaw_deg + 90.0;
-                            phiy = phi_deg + yaw_deg + 180.0;
-                            thetaz = 0.0;
-                        } else {
-                            phix = phi_deg + yaw_deg - 90.0;
-                            phiy = phi_deg + yaw_deg + 180.0;
-                            thetaz = 180.0;
-                        }
-                    } else { // isZMinus
-                        if (!isFlipped) {
-                            phix = phi_deg + yaw_deg + 90.0;
-                            phiy = phi_deg + yaw_deg;
-                            thetaz = 180.0;
-                        } else {
-                            phix = phi_deg + yaw_deg - 90.0;
-                            phiy = phi_deg + yaw_deg;
-                            thetaz = 0.0;
-                        }
-                    }
-
-                    // Keep values cleanly within 0-360 range
-                    rot.thetax = 90.0; rot.phix = std::fmod(phix + 3600.0, 360.0);
-                    rot.thetay = 90.0; rot.phiy = std::fmod(phiy + 3600.0, 360.0);
-                    rot.thetaz = thetaz; rot.phiz = 0.0;
-                    
-                    r.insert(std::make_pair(name, rot));
-                }
-                return name;
-            };
 
             // Lambda to emit 1-entry XYZPosAlgo blocks for a surface
             auto emitModulePlacement = [&](int startCopyNo, double surfaceZMid, bool isZPlus, bool isFlipped,
@@ -3059,9 +2892,7 @@ namespace insur {
                     double y = rad * std::sin(phi_rad);
                     double z = surfaceZMid - myRingInfo.zMid; 
 
-                    std::string rotName = registerEndcapModuleRotation(phis[i], yaws[i], isZPlus, isFlipped);
-                    // Endcap modules are never at identity orientation (always tilted 90 degrees), 
-                    // so we do not need the "NULL" fallback check used in the barrel.
+                    std::string rotName = registerEndcapModuleRotation(r, phis[i], yaws[i], isZPlus, isFlipped);
                     std::string rotEntry = trackerXmlTags.nspace + ":" + rotName;
 
                     alg.name = xml_xyzpos_algo;
@@ -3678,43 +3509,13 @@ namespace insur {
               rspec.partselectors.push_back(logic.name_tag);
               rspec.moduletypes.push_back(minfo_zero);
 
-	      // Emit one DDTrackerXYZPosAlgo block per module for this subdisk's surface.
-	      // Rotation formula: exact algebraic expansion of R_phi * R_tilt(90) * R_flip * R_yaw.
-	      auto registerEndcapModuleRotation = [&](double phi_deg, double yaw_deg, bool isZPlus, bool isFlipped) -> std::string {
-	        double norm_phi = std::fmod(phi_deg, 360.0);
-	        if (norm_phi < 0.0) norm_phi += 360.0;
-	        std::ostringstream rotName;
-	        rotName << "EMod_Phi" << static_cast<int>(std::round(norm_phi * 10.0))
-	                << "_Yaw"    << static_cast<int>(std::round(yaw_deg * 10.0))
-	                << (isZPlus ? "_ZPlus" : "_ZMinus")
-	                << (isFlipped ? "_Flipped" : "");
-	        const std::string name = rotName.str();
-	        if (r.find(name) == r.end()) {
-	          double phix = 0.0, phiy = 0.0, thetaz = 0.0;
-	          if (isZPlus) {
-	            if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 0.0; }
-	            else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 180.0; }
-	          } else {
-	            if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg;         thetaz = 180.0; }
-	            else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg;         thetaz = 0.0; }
-	          }
-	          Rotation rot;
-	          rot.name = name;
-	          rot.thetax = 90.0; rot.phix = std::fmod(phix + 3600.0, 360.0);
-	          rot.thetay = 90.0; rot.phiy = std::fmod(phiy + 3600.0, 360.0);
-	          rot.thetaz = thetaz; rot.phiz = 0.0;
-	          r.insert(std::make_pair(name, rot));
-	        }
-	        return name;
-	      };
-
 	      const int sdPhiParity = sdIndex % 2; // 1 = odd phi (SD1), 0 = even phi (SD2)
 	      const auto& ringModules = modulesByRingPhi[ringIndex];
 	      for (const auto& [phiIdx, modData] : ringModules) {
 	        if (phiIdx % 2 != sdPhiParity) continue;
 	        const double phi_rad = modData.phi_deg * M_PI / 180.0;
 	        const std::string rotName = registerEndcapModuleRotation(
-	          modData.phi_deg, modData.yaw_deg, myRingInfo.isDiskAtPlusZEnd, modData.isFlipped);
+	          r, modData.phi_deg, modData.yaw_deg, myRingInfo.isDiskAtPlusZEnd, modData.isFlipped);
 	        alg.name = xml_xyzpos_algo;
 	        alg.parent = logic.shape_tag;
 	        alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
@@ -4263,55 +4064,6 @@ namespace insur {
       rot.phiz = 0.;
       storedRotations.insert(std::pair<std::string, Rotation>(rotationName, rot));
     }
-  } 
-
-
-
-  void Extractor::createAndStoreDDTrackerAngularAlgorithmBlock(std::vector<AlgoInfo>& storedAlgorithmBlocks,
-							       const std::string nameSpace, 
-							       const std::string parentName,
-							       const std::string childName,
-							       const double startAngleInRad,
-							       const double rangeAngleInRad,
-							       const double radius,
-							       const XYZVector& center,
-							       const int numCopies,
-							       const int startCopyNumber,
-							       const int copyNumberIncrement) {
-    AlgoInfo myAlgo; // would obviously be better to build the algo directly here instead of having a constructor with no argument!
-
-    // Algo name
-    myAlgo.name = xml_angular_algo;
-
-    // Parent volume name
-    myAlgo.parent = nameSpace + ":" + parentName;
-
-    // Child volume name
-    myAlgo.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + childName));
-	 
-    // Volume with copy number 1, center phi angle
-    myAlgo.parameters.push_back(numericParam(xml_startangle, any2str(startAngleInRad * 180. / M_PI, xml_angle_precision) + "*deg"));
-	 
-    // Difference between first and last volumes' centers phi angles
-    myAlgo.parameters.push_back(numericParam(xml_rangeangle, any2str(rangeAngleInRad * 180. / M_PI, xml_angle_precision) + "*deg"));
-
-    // All volumes are assumed to be placed at same radius in that algorithm
-    myAlgo.parameters.push_back(numericParam(xml_radius, any2str(radius) + "*mm"));
-
-    // Shift of children with respect to parent, AFTER rotation is done
-    myAlgo.parameters.push_back(vectorParam(center.X(), center.Y(), center.Z()));
-
-    // Number of children copies
-    myAlgo.parameters.push_back(numericParam(xml_nmods, any2str(numCopies)));
-	  
-    // Start copy number
-    myAlgo.parameters.push_back(numericParam(xml_startcopyno, any2str(startCopyNumber)));
-
-    // Copy number increment
-    myAlgo.parameters.push_back(numericParam(xml_incrcopyno, any2str(copyNumberIncrement)));
-
-    // Store algo
-    storedAlgorithmBlocks.push_back(myAlgo);
   }
 
 
