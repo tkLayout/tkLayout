@@ -682,6 +682,12 @@ namespace material {
     int secMinR = section->minR();
     int secCollision = collision;
 
+    // isHit accepts hits up to sectionWidth + safetySpace beyond the section ends: splitting there would leave an empty or inverted piece.
+    const int sectionStart = (direction == HORIZONTAL) ? section->minR() : section->minZ();
+    const int sectionEnd = (direction == HORIZONTAL) ? section->maxR() : section->maxZ();
+    if (collision - safetySpace <= sectionStart) return section;
+    if (collision >= sectionEnd) return section->hasNextSection() ? section->nextSection() : section;
+
       if (direction == HORIZONTAL) {
         buildSection(useless, retValue, secMinZ, secCollision, section->maxR(), inverseDirection(direction));
 
@@ -952,16 +958,6 @@ namespace material {
           // overlap. startEndcap is the horizontal rail and has constant minR, so this places the
           // flange station just below the rail like every other disk.
           int sectionMaxR = startEndcap->minR() - safetySpace - layerStationLenght;
-
-	  if (sectionMaxR <= sectionMinR) {
-	    logERROR(Form("Disk service routing: sectionMaxR (%d) <= sectionMinR (%d) "
-			 "(disk minR=%.1f mm, horizontal rail minR=%.1f mm). "
-			 "Not enough radial clearance for the conversion station. "
-			 "sectionMaxR clamped to sectionMinR.",
-			 sectionMaxR, sectionMinR,
-			 undiscretize(sectionMinR), undiscretize(startEndcap->minR())));
-	    sectionMaxR = sectionMinR;
-	  }
 
 	  // DEE VOLUMES (1 disk = 2 dees)
 	  // TO DO: move this to tuneable disk properties.
