@@ -29,7 +29,7 @@ Component {
     quantity 0.2329 //26mm3 of copper from stella * copper density
     unit g
     targetVolume 1
-  }
+  } 
 }
 
 Component {
