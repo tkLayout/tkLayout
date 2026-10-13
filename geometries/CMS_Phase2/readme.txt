@@ -608,6 +608,11 @@ OT807_IT744.cfg                      Just like OT806_IT744, but with fixed modul
 OT807_IT749.cfg                      Just like OT806_IT749, but with fixed module orientation in TB2S and TBPS (flat and tilted sections).
 OT807_IT745.cfg                      Just like OT807_IT749, but without gap and using module_BPIX_L1_1x2_2500_2sens_3D instead of module_BPIX_L1_1x2_2500_3D
 OT807_IT746.cfg                      Just like OT807_IT749, but with the big gap 1.3.
+OT807_IT750.cfg                      Just like OT807_IT749, but with TFPX_7_5_0: TFPX Ring 3 modules at R = 106 mm instead of 105 mm,
+                                     and with TEPX_7_5_0: TEPX bigDelta 1.5 -> 1.745 mm, disks 2 and 4 at Z = 2005.3 and 2685.3 mm,
+                                     and with BPIX_7_5_0: module_BPIX_L1_1x2_2500_2sens_3D instead of module_BPIX_L1_1x2_2500_3D,
+                                     TBPX L2 dead-area mass matching its 17.7 x 44.35 mm sensor,
+                                     TBPX L3/L4 dead edge 0.45 -> 0.435 mm (34.72 x 44.32 mm sensor) with matching dead-area mass.
 
 NOTE: Pixel_V7_4_4.cfg was reverted to commit 0be8eb5 and no longer includes TEPX_7_4_4.cfg
       (it now uses BPIX_7_4_4.cfg + Pixel_V6/TFPX_6_4_0.cfg + Pixel_V6/TEPX_6_1_3.cfg instead).
