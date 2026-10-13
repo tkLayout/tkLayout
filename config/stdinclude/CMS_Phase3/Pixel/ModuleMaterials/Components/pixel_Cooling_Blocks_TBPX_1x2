@@ -11,6 +11,7 @@ Component {
     elementName Epoxy
     quantity 0.024
     unit g
+    targetVolume 3
     //Angela: 0.700g / 60 * 2 = 0.012
   }
 }
