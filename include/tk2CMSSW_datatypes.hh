@@ -334,6 +334,8 @@ namespace insur {
       * * @param roccols The number of ROCCols
       * * @param rocx The number of ROC_X
       * * @param rocy The number of ROC_Y
+      * * @param bigpixx, bigpixy The number of big pixels per ROC (empty if none)
+      * * @param bigpixpitchx, bigpixpitchy The big pixel pitch in cm (empty if none)
       * */
     struct ModuleROCInfo {
       std::string name;
@@ -342,6 +344,10 @@ namespace insur {
       std::string roccols;
       std::string rocx;
       std::string rocy;
+      std::string bigpixx;
+      std::string bigpixy;
+      std::string bigpixpitchx;
+      std::string bigpixpitchy;
     };
 
     /**
