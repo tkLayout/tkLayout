@@ -31,6 +31,8 @@ namespace insur {
     minfo.bigpixy      = bigY ? any2str<int>(bigY) : "";
     minfo.bigpixpitchx = bigX ? any2str<double>(sensor.bigPixelPitchX() / Units::cm) : "";
     minfo.bigpixpitchy = bigY ? any2str<double>(sensor.bigPixelPitchY() / Units::cm) : "";
+    minfo.bigpixtwoedgesx = bigX && sensor.bigPixelsTwoEdgesX() ? xml_true : "";
+    minfo.bigpixtwoedgesy = bigY && sensor.bigPixelsTwoEdgesY() ? xml_true : "";
   }
   static double vecPhi(const std::array<double, 3>& v) {
     double p = std::atan2(v[1], v[0]) * (180.0 / M_PI);

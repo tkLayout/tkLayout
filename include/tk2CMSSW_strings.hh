@@ -293,6 +293,8 @@ namespace insur {
     static const std::string xml_big_pixels_y = "BigPixels_Y";
     static const std::string xml_big_pixels_pitch_x = "BigPixels_Pitch_X";
     static const std::string xml_big_pixels_pitch_y = "BigPixels_Pitch_Y";
+    static const std::string xml_big_pixels_two_edges_x = "BigPixels_TwoEdges_X";
+    static const std::string xml_big_pixels_two_edges_y = "BigPixels_TwoEdges_Y";
     static const std::string xml_bricked_name = "isBricked";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_reco = "TrackerRecMaterial";

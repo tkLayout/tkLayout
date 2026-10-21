@@ -336,6 +336,7 @@ namespace insur {
       * * @param rocy The number of ROC_Y
       * * @param bigpixx, bigpixy The number of big pixels per ROC (empty if none)
       * * @param bigpixpitchx, bigpixpitchy The big pixel pitch in cm (empty if none)
+      * * @param bigpixtwoedgesx, bigpixtwoedgesy "true" if the big pixels sit at both edges of each ROC (empty otherwise)
       * */
     struct ModuleROCInfo {
       std::string name;
@@ -348,6 +349,8 @@ namespace insur {
       std::string bigpixy;
       std::string bigpixpitchx;
       std::string bigpixpitchy;
+      std::string bigpixtwoedgesx;
+      std::string bigpixtwoedgesy;
     };
 
     /**

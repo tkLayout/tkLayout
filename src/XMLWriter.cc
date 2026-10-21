@@ -1058,17 +1058,19 @@ namespace insur {
       stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
       stream<< xml_spec_par_parameter_first << xml_roc_x           << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second  << minfo.at(i).rocx     << xml_general_endline;
       stream<< xml_spec_par_parameter_first << xml_roc_y           << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second  << minfo.at(i).rocy;
-      specParOptionalEval(xml_big_pixels_x, minfo.at(i).bigpixx, stream);
-      specParOptionalEval(xml_big_pixels_y, minfo.at(i).bigpixy, stream);
-      specParOptionalEval(xml_big_pixels_pitch_x, minfo.at(i).bigpixpitchx, stream);
-      specParOptionalEval(xml_big_pixels_pitch_y, minfo.at(i).bigpixpitchy, stream);
+      specParOptional(xml_big_pixels_x, minfo.at(i).bigpixx, true, stream);
+      specParOptional(xml_big_pixels_y, minfo.at(i).bigpixy, true, stream);
+      specParOptional(xml_big_pixels_pitch_x, minfo.at(i).bigpixpitchx, true, stream);
+      specParOptional(xml_big_pixels_pitch_y, minfo.at(i).bigpixpitchy, true, stream);
+      specParOptional(xml_big_pixels_two_edges_x, minfo.at(i).bigpixtwoedgesx, false, stream);
+      specParOptional(xml_big_pixels_two_edges_y, minfo.at(i).bigpixtwoedgesy, false, stream);
       stream << xml_spec_par_close;
     }
   }
 
-  void XMLWriter::specParOptionalEval(const std::string& name, const std::string& value, std::ofstream& stream) {
+  void XMLWriter::specParOptional(const std::string& name, const std::string& value, bool eval, std::ofstream& stream) {
     if (value.empty()) return;
-    stream << xml_general_endline << xml_spec_par_parameter_first << name << xml_spec_par_parameter_evaluation << xml_spec_par_parameter_second << value;
+    stream << xml_general_endline << xml_spec_par_parameter_first << name << (eval ? xml_spec_par_parameter_evaluation : "") << xml_spec_par_parameter_second << value;
   }
 
     
