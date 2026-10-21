@@ -12,7 +12,6 @@ int main(int argc, char* argv[]) {
   usage += argv[0];
   usage += " <geometry file> [options]";
   int geomtracks, mattracks;
-  //std::vector<int> tracksim;
   int verbosity;
   int randseed; 
 
@@ -194,23 +193,9 @@ int main(int argc, char* argv[]) {
     if (!squid.makeSite()) return EXIT_FAILURE;
 
   } else {
-    //if (tracksim.size() < 1 || tracksim.size > 2) {
-    //  std::cerr << "Wrong number of parameters. Syntax: --tracksim <num events> <num tracks/ev>" << std::endl;
-    //  std::cerr << "                                    --tracksim parameterfile" << std::endl;
-    //  std::cerr << "                                    --tracksim \"key1 = value1; key2 = value2 ...\"" << std::endl;
-    //  return EXIT_FAILURE;
-   // }
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
   
-//    if (tracksim.size() == 2) {
-//      vmtracks.insert(std::make_pair("num-events", po::variable_value(boost::any(tracksim[0]), false)));
-//      vmtracks.insert(std::make_pair("num-tracks", po::variable_value(boost::any(tracksim[1]), false)));
-//    }
     squid.simulateTracks(vm, randseed);
-
-    //if (tracksim.size() == 2) { squid.simulateTracks(str2any<long int>(tracksim[0]), str2any<long int>(tracksim[1]), randseed, "", ""); }
-    //else if (tracksim.size() == 1 && tracksim[0].at(0)=="\"") { squid.simulateTracks(0, 0, randseed, "", trim(tracksim[0], " \"")); }
-    //else { squid.simulateTracks(0, 0, randseed, tracksim[0], ""); }
   }
 
   return EXIT_SUCCESS;

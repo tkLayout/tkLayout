@@ -27,8 +27,10 @@ double ptError::computeErrorBE(double p) {
   double A = 0.3 * SimParms::getInstance().magField() * Module_r / 2.;
   double a = pow(p/A,2);
   double g = 1/a;
-  //std::cout << "g = " << g << std::endl;
-  //std::cout << "a = " << a << std::endl;
+#ifdef debug_resolution
+  std::cout << "g = " << g << std::endl;
+  std::cout << "a = " << a << std::endl;
+#endif
 
   double one_over_sin_cos = (Module_z/Module_r) + (Module_r/Module_z);
 
@@ -41,11 +43,13 @@ double ptError::computeErrorBE(double p) {
   double f4 = 1-g;
   double f5 = (1-g)*one_over_sin_cos; // For material interaction
   //double f5 = (1-g)/sin(Module_theta)/cos(Module_theta); // For material interaction
-  //std::cout << "f1 = " << f1 <<std::endl;
-  //std::cout << "f2 = " << f2 <<std::endl;
-  //std::cout << "f3 = " << f3 <<std::endl;
-  //std::cout << "f4 = " << f4 <<std::endl;
-  //std::cout << "f5 = " << f5 <<std::endl;
+#ifdef debug_resolution
+  std::cout << "f1_sq = " << f1_sq <<std::endl;
+  std::cout << "f2_sq = " << f2_sq <<std::endl;
+  std::cout << "f3 = " << f3 <<std::endl;
+  std::cout << "f4 = " << f4 <<std::endl;
+  std::cout << "f5 = " << f5 <<std::endl;
+#endif
 
   double relativeError2;
   double deltaPhi;

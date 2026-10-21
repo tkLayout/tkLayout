@@ -63,9 +63,6 @@ public:
   //! Check whether magnetic field const. or defined as a function -> for now assumed const.
   bool isMagFieldConst() const { return true;}
 
-  //! Get number of defined mag. field regions
-  //size_t getNMagFieldRegions() const { return magFieldZRegions.size(); }
-
   //! Get reference to irradiation maps manager
   const IrradiationMapsManager& irradiationMapsManager() const { return irradiationMapsManager_; }
   const IrradiationMapsManager& doseMapsManager() const { return doseMapsManager_; }

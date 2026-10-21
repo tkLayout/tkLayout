@@ -323,34 +323,21 @@ public:
             if (windowSize==aModule->triggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
           }
 
-          /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
-            std::cout << myName << " - " << aModule->getTag() << " - minDistBelow = " << minDistBelow;
-            std::cout <<  ", so[0]=" << spacingOptions[0] << ", so[n-1]=" << spacingOptions[nSpacingOptions-1];
-            }*/
           if (minDistBelow<spacingOptions[0]) minDistBelow=spacingOptions[0];
           else if (minDistBelow>spacingOptions[nSpacingOptions-1]) minDistBelow=spacingOptions[nSpacingOptions-1];
           else {
             for (unsigned int iSpacing = 0; iSpacing < nSpacingOptions-1; ++iSpacing) {
-              /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) {// debug
-                std::cout << " spacingOptions[" << iSpacing << "] = " << spacingOptions[iSpacing];
-                std::cout << " spacingOptions[" << iSpacing+1 << "] = " << spacingOptions[iSpacing+1];
-                }*/
               if ((minDistBelow>=spacingOptions[iSpacing]) && (minDistBelow<spacingOptions[iSpacing+1])) {
                 minDistBelow=spacingOptions[iSpacing+1];
-                /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
-                  std::cout << " here it is: ";*/
                 break;
               }
             }
           }
-          /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
-            std::cout << " - approx to " << minDistBelow << " for a window of " << windowSize << std::endl;*/
           moduleOptimalSpacings[aModule][windowSize] = minDistBelow;
         }
         // Find the "high" and "low" points
         double lowEdge = findXThreshold(tempProfileLow, 1, true);
         double highEdge = findXThreshold(tempProfileHigh, 90, false);
-        // std::cerr << myName << ": " << lowEdge << " -> " << highEdge << std::endl; // debug
         double centerX; double sizeX;
         centerX = iType+(double(iWindow)+0.5)/(double(nWindows_));
         sizeX = 1./ (double(nWindows_)) * 0.8; // 80% of available space, so that they will not touch

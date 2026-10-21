@@ -27,14 +27,11 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   typedef PtrVector<BarrelModule> Container;
  private :
   Container modules_;
-  //MaterialObject materialObject_;
   
   double thetaOuterUP_, thetaOuterDOWN_, thetaOuter_, tiltAngleIdealOuter_, deltaTiltIdealOuter_;
   double thetaInner_, tiltAngleIdealInner_, deltaTiltIdealInner_;
 
   double thetaStart_, thetaEnd_;
-
-  double thetaStartInner_, thetaEndInner_;
 
   double numPhi_, phiOverlap_;
 
@@ -80,11 +77,6 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
     for (const auto& m : modules_) { m.accept(v); }
     }
 
-  //const MaterialObject& materialObject() const { return materialObject_; };
-
-  
-  //double zOuter() const { return zOuter_; }
-  //double zInner() const { return zInner_; }
   double thetaOuter() const { return thetaOuter_; }
   double thetaInner() const { return thetaInner_; }
   double thetaEnd() const { return thetaEnd_; }
@@ -95,9 +87,6 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
   double tiltAngleIdealInner() const { return tiltAngleIdealInner_; }
   double deltaTiltIdealInner() const { return deltaTiltIdealInner_; }
-
-  //double thetaStartInner() const { return thetaStartInner_; }
-  //double thetaEndInner() const { return thetaEndInner_; }
 
   double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
   double averageZ() const { return (zInner() + zOuter()) / 2.; }

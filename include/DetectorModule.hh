@@ -602,12 +602,6 @@ public:
 
   void build();
 
-
-  //double maxZ() const { return MAX(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
-  //double minZ() const { return MIN(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
-  //double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
-  //double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
-
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
   PosRef posRef() const { return (PosRef){ subdetectorId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
@@ -717,13 +711,6 @@ public:
     v.visit(*(DetectorModule*)this);
     for (auto& s : sensors_) { s.accept(v); }
   }
-
-  //double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
-  //double maxZ() const { return center().Z(); } // ditto here
-  //double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
-  //double minR() const { XYZVector side[2];
-  //                      std::partial_sort_copy(basePoly().begin(), basePoly().end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
-  //                      return ((side[0]+side[1])/2).Rho(); }
 
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }

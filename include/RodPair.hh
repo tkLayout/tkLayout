@@ -48,7 +48,6 @@ private:
   void clearComputables();
 public:
   Property<StartZMode, Default> startZMode;
-  //Property<double, NoDefault> maxZ;
   Property<double, Computable> maxZ;
   Property<double, Computable> minZ, maxR, minR;
   Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
@@ -207,17 +206,6 @@ public:
       double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
 
       thetaEnd = atan(rH2ppUP / (lastMod->planarMaxZ()));
-
-      /*std::cout << "lastMod.center().Rho() = " << lastMod.center().Rho() << std::endl;
-      std::cout << "lastMod.dsDistance() = " << lastMod.dsDistance() << std::endl;
-      std::cout << "lastMod.thickness() = " << lastMod.thickness() << std::endl;
-      std::cout << "rH2ppUP = " << rH2ppUP << std::endl;
-      std::cout << "thetaEnd = " << thetaEnd << std::endl;
-   
-      std::cout << "lastMod.planarMaxR() = " << lastMod.planarMaxR() << std::endl;
-      std::cout << "lastMod.planarMaxZ() - zOverlap() = " << lastMod.planarMaxZ() - zOverlap() << std::endl;
-      double thetaEnd2 = atan(lastMod.planarMaxR() / (lastMod.planarMaxZ() - zOverlap()));
-      std::cout << "thetaEnd2 = " << thetaEnd2 << std::endl;*/
     }
     return thetaEnd;
   }

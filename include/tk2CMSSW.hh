@@ -49,7 +49,7 @@ namespace insur {
     class tk2CMSSW {
         mainConfigHandler& mainConfiguration;
     public:
-        tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
+        tk2CMSSW() = default;
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, std::string xmlDirectoryPath, std::string xmlOutputPath, std::string xmlOutputName = "", bool wt = false);
         struct ConfigFile { std::string name, content; };

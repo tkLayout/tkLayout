@@ -77,11 +77,7 @@ public:
   virtual void visit(BarrelModule&) {}
   virtual void visit(EndcapModule&) {}
   virtual void visit(DetectorModule&) {}
-  // virtual void visit(RectangularModule&) {}
-  // virtual void visit(WedgeModule&) {}
-  //virtual void visit(GeometricModule&) {}
   virtual void visit(Sensor&) {}
-  //virtual void visit(SimParms&) {}
 };
 
 #endif

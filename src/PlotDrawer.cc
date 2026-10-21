@@ -16,15 +16,6 @@ template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY)
   std::string name = std::string("frameYZ") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, 0, viewportX, nBinsZoom, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
-  //    frame->GetXaxis()->SetTickLength(-0.03);
-  //    frame->GetXaxis()->SetLabelOffset(0.03);
-  //    frame->GetXaxis()->SetNdivisions(10);
-
-  //    frame->GetYaxis()->SetTitleOffset(1.2);
-  //    frame->GetYaxis()->SetTickLength(-0.015);
-  //    frame->GetYaxis()->SetLabelOffset(0.015);
-  //    frame->GetYaxis()->SetNdivisions(10);
-
   return frame;
 }
 

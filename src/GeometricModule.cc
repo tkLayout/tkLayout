@@ -87,10 +87,6 @@ double GeometricModule::triangleCross(const XYZVector& P1, // Triangle points
     // v(1) = beta  : triangle local coordinate
     // v(2) = gamma : line coordinate
 
-    //     std::cout << "Alpha: " << v(0) << std::endl;
-    //     std::cout << "Beta:  " << v(1) << std::endl;
-    //     std::cout << "Gamma: " << v(2) << std::endl;
-
     if (
       (v(0)>=0)&&
       (v(1)>=0)&&
@@ -215,11 +211,8 @@ void WedgeModule::build() {
     // Some member variable computing:
     area_     = fabs((b1+b2) * (h2+h1));
     length_   = (b1 + b2);
-    //phiWidth_ = 2*phi;
     minWidth_  = 2 * h1;
     maxWidth_  = 2 * h2;
-  //dist_     = d;
-  //aspectRatio_ = length_/(h1+h2);
 
     // Right-handed drawing, (not left-handed as previously)
     basePoly_ << (XYZVector( length_/2., maxWidth_/2., 0))

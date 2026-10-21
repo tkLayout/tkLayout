@@ -75,11 +75,9 @@ private:
   Property<std::string, AutoDefault> barrelDetIdScheme;
   Property<std::string, AutoDefault> endcapDetIdScheme;
 
-  //std::map<uint32_t, Module> modules_;
   std::unique_ptr<const OuterCablingMap> myOuterCablingMap_;
   std::unique_ptr<const InnerCablingMap> myInnerCablingMap_;
 
-  //Tracker(const Tracker& otherTracker) = default;
 public:
 
   Tracker() :
