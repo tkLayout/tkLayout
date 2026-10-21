@@ -111,8 +111,13 @@ public:
     int curCnt = triggerFrequencyCounts_[table][std::make_pair(row, col)]++;
     double curAvgTrue = triggerFrequencyAverageTrue_[table][std::make_pair(row, col)];
     double curAvgInteresting = triggerFrequencyInterestingParticleTrue_[table][std::make_pair(row, col)];
+    // Fake stub rate averaging is disabled; we might want to look at this later on
+    //double curAvgFake = triggerFrequencyAverageFake_[table][std::make_pair(row, col)];
     double curAvgMisfiltered = triggerFrequencyAverageMisfiltered_[table][std::make_pair(row, col)];
     double curAvgCombinatorial = triggerFrequencyAverageCombinatorial_[table][std::make_pair(row, col)];
+
+    //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+    //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
     double highPtParticlesRate = pterr.getParticleFrequencyPerEventAbove(interestingPt_)*nMB_;
     double trueStubRate = pterr.getTriggerFrequencyTruePerEventAbove(interestingPt_)*nMB_; // highPtParticlesRate * triggerEfficiency
