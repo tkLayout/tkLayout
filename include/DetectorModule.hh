@@ -626,7 +626,7 @@ public:
 	if (!hasAnyResolutionLocalXParam()) {
 	  //std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
 	  double res = 0;
-	  for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
+	  for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
 	  return sqrt(res)/numSensors();
 	}
 	// if model parameters specified, return -1
@@ -726,7 +726,7 @@ public:
 	if (!hasAnyResolutionLocalXParam()) {
 	  //std::cout << "nominalResolutionLocalX and resolutionLocalXEndcap parameters are all unset. Use of default formulae." << std::endl;
 	    double res = 0;
-	    for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
+	    for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
 	    return sqrt(res)/numSensors();
 	  }
 	// if model parameters specified, return -1
