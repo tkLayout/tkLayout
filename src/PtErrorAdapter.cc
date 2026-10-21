@@ -157,11 +157,28 @@ double PtErrorAdapter::find_probability(double target, double ptCut) {
   double testPt;
   double testProbability;
 
+#ifdef debug_resolution
+  std::cerr << "LO: prob("<<lowerPt<<") = " << lowerProbability << std::endl;
+  std::cerr << "HI: prob("<<higherPt<<") = " << higerProbability << std::endl;
+#endif
+
   if ((target<lowerProbability)||(target>higerProbability)) return -1; // probability not reachable within desired pt range
 
   for (int i=0; i<100; ++i) {
+#ifdef debug_resolution
+    std::cerr << std::endl;
+    std::cerr << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "****** STEP # " << i << "*********" << std::endl;
+#endif
     testPt = sqrt(lowerPt*higherPt);
     testProbability = mod_.geometricEfficiency() * myPtError.probabilityInside(1/ptCut, 1/testPt, myPtError.computeError(testPt)/testPt);
+#ifdef debug_resolution
+    std::cerr << "Geometric efficiency is " << mod_.geometricEfficiency() << std::endl;
+    std::cerr << "LO: prob("<<lowerPt<<") = " << lowerProbability << std::endl;
+    std::cerr << "HI: prob("<<higherPt<<") = " << higerProbability << std::endl;
+    std::cerr << "XX: prob("<<testPt<<") = " << testProbability << std::endl;
+#endif
 
     if (testProbability>target) {
       higherPt = testPt;

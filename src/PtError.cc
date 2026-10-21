@@ -27,6 +27,10 @@ double ptError::computeErrorBE(double p) {
   double A = 0.3 * SimParms::getInstance().magField() * Module_r / 2.;
   double a = pow(p/A,2);
   double g = 1/a;
+#ifdef debug_resolution
+  std::cout << "g = " << g << std::endl;
+  std::cout << "a = " << a << std::endl;
+#endif
 
   double one_over_sin_cos = (Module_z/Module_r) + (Module_r/Module_z);
 
@@ -38,6 +42,14 @@ double ptError::computeErrorBE(double p) {
   double f3 = 2-g; // TODO: this is 1 for radial strips
   double f4 = 1-g;
   double f5 = (1-g)*one_over_sin_cos; // For material interaction
+  //double f5 = (1-g)/sin(Module_theta)/cos(Module_theta); // For material interaction
+#ifdef debug_resolution
+  std::cout << "f1_sq = " << f1_sq <<std::endl;
+  std::cout << "f2_sq = " << f2_sq <<std::endl;
+  std::cout << "f3 = " << f3 <<std::endl;
+  std::cout << "f4 = " << f4 <<std::endl;
+  std::cout << "f5 = " << f5 <<std::endl;
+#endif
 
   double relativeError2;
   double deltaPhi;

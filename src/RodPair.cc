@@ -248,6 +248,9 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
       }
     }
   }
+#ifdef debug_geometry
+  std::cout << "next Z -  " << newZ << std::endl;
+#endif
   return newZ;
 }
 
@@ -465,6 +468,11 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < (int)tmspecs.size(); i++, ++it) {
     bool isTiltedModule = (tmspecs[i].gamma == 0);
+#ifdef debug_geometry
+    std::cout << "i = " << i << std::endl;
+    std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
+    std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
+#endif
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);

@@ -383,6 +383,16 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
 
       // Calculate zOuter
       zOuter(outerRadius() / tan(thetaOuter_));
+#ifdef debug_geometry
+      std::cout << "thetaStart_ * 180. / M_PI = " << thetaStart_ * 180. / M_PI << std::endl;
+      std::cout << "outerRadius() = " << outerRadius() << std::endl;
+      std::cout << "lengthEff = " << lengthEff << std::endl;
+      std::cout << "ringZOverlap() = " << ringZOverlap() << std::endl;
+      std::cout << "thetaOuterUP_  * 180. / M_PI = " << thetaOuterUP_  * 180. / M_PI << std::endl;
+      std::cout << "thetaOuterDOWN_  * 180. / M_PI = " << thetaOuterDOWN_  * 180. / M_PI << std::endl;
+      std::cout << "thetaOuter_  * 180. / M_PI = " << thetaOuter_  * 180. / M_PI << std::endl;
+      std::cout << "zOuter() = " << zOuter() << std::endl;
+#endif
 
       // Calculate zInner
       zInner( zOuter() - (outerRadius() - innerRadius()) / tan(theta_gRad));
@@ -408,7 +418,10 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
       double ringZOverlapUP = 0.5 * ( length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. ) );
 
       double ringZOverlapDOWN = 0.5 * ( length - (outerRadius()/tan(thetaOuter_) - outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) - dsDistance*sin(tilt)/2. ) / ( sin(tilt)/(2.*tan(thetaStart_)) + cos(tilt)/2. ) );
-      
+#ifdef debug_geometry
+      std::cout << " ringZOverlapUP = " <<  ringZOverlapUP <<  "ringZOverlapDOWN = " << ringZOverlapDOWN << std::endl;
+#endif
+
       ringZOverlap( MIN(ringZOverlapUP, ringZOverlapDOWN) );
 
       // Calculate lengthEff
@@ -432,6 +445,22 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   double zH2DOWN = zOuter() - 0.5 * dsDistance * sin(tilt);
   double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tilt);
 
+#ifdef debug_geometry
+  std::cout << "zOuter() = " << zOuter() << std::endl;
+  std::cout << "zInner() = " << zInner() << std::endl;
+
+  double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tilt);
+  double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tilt);
+  double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tilt);
+  double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tilt);
+
+  std::cout << "zH2ppUP = " << zH2ppUP << " zH2ppDOWN = " << zH2ppDOWN << std::endl;
+  std::cout << "rH2ppUP = " << rH2ppUP <<" rH2ppDOWN = " << rH2ppDOWN << std::endl;
+  std::cout << "atan(rH2ppUP / zH2ppUP) = " << atan(rH2ppUP / zH2ppUP) << std::endl;
+  std::cout << "MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) = " << MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) << std::endl;
+  std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
+#endif
+
 
 
 
@@ -448,6 +477,20 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
 
   double zH1DOWN = zInner() - 0.5 * dsDistance * sin(tilt);
   double rH1DOWN = innerRadius() - 0.5 * dsDistance * cos(tilt);
+
+#ifdef debug_geometry
+  double zH1pUP = zH1UP - 0.5 * lengthEff * cos(tilt);
+  double zH1ppUP = zH1UP + 0.5 * lengthEff * cos(tilt);
+  double rH1ppUP = rH1UP - 0.5 * lengthEff * sin(tilt);
+  double zH1pDOWN = zH1DOWN - 0.5 * lengthEff * cos(tilt);
+  double rH1pDOWN = rH1DOWN + 0.5 * lengthEff * sin(tilt);
+  double zH1ppDOWN = zH1DOWN + 0.5 * lengthEff * cos(tilt);
+  double rH1ppDOWN = rH1DOWN - 0.5 * lengthEff * sin(tilt);
+
+  std::cout << "thetaStartInner = " << MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN)) << std::endl;
+  std::cout << "thetaEndInner = " << MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN)) << std::endl;
+  std::cout << "phiOverlapDEG = " << atan(width / (2.* rH2pUP)) + atan(width / (2.* rH1pUP)) - 2. * M_PI / numPhi() << std::endl;
+#endif
 
 
 
