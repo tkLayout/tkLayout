@@ -372,6 +372,32 @@ public:
     }
     return sensorThickness + chipThickness + hybridThickness;
   }
+  // Local-z of the SupportPlate center (single source of truth for plate placement).
+  // OT: inner-sensor bottom face is at -(ds/2 + t_s/2); plate sits flush below it.
+  // IT/timing: single sensor centered at 0; bottom face at -(t_s/2).
+  static double computeSupportPlatePosZ(bool isPixel, bool isTiming, double dsDistance,
+                                        double sensorThickness, double supportPlateThickness) {
+    const double innerSensorBottom = (!isPixel && !isTiming)
+        ? -(dsDistance / 2. + sensorThickness / 2.)
+        : -(sensorThickness / 2.);
+    return innerSensorBottom - supportPlateThickness / 2.;
+  }
+
+  // AIR-envelope thickness for ModuleComplex's symmetric bounding box: large enough to
+  // enclose the asymmetrically-placed SupportPlate. NOT a physical/material thickness.
+  static double computeEnclosingModThickness(bool isPixel, bool isTiming, double dsDistance,
+                                             double sensorThickness, double supportPlateThickness,
+                                             double chipThickness, double hybridThickness) {
+    if (!isPixel && !isTiming) {
+      // Material span is ds + t_s + sp; the one-sided plate must be mirrored to make the box
+      // symmetric about z=0, adding one more sp. Assumes OT hybrids are shallower than the plate.
+      return computeExpandedModThickness(isPixel, isTiming, dsDistance, sensorThickness,
+                                         supportPlateThickness, chipThickness, hybridThickness)
+             + supportPlateThickness;
+    }
+    return computeExpandedModThickness(isPixel, isTiming, dsDistance, sensorThickness,
+                                       supportPlateThickness, chipThickness, hybridThickness);
+  }
 
   std::map<std::string, double> extremaWithHybrids() const;
   double minZwithHybrids() const { return extremaWithHybrids()["minZ"]; }
