@@ -76,6 +76,7 @@ namespace insur {
     void specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker);
 
   private:
+    void specParOptional(const std::string& name, const std::string& value, bool eval, std::ofstream& stream);
     void writeMechanicalCategoriesFilesHeaders(std::ostringstream& mechanicalCategoriesStream);
     void writeMechanicalCategoriesFiles(const std::vector<Element>& allChemicalElements, const std::vector<Composite>& allChemicalMixturesAndComposites, std::ostringstream& mechanicalCategoriesStream, const bool isRL, const bool isPixelTracker);
     std::vector<MechanicalCategory> printedCompositesMechanicalCategories_;

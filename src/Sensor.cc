@@ -120,11 +120,15 @@ std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, co
 
 int Sensor::numStripsAcrossEstimate() const {
   if (numStripsAcross.state()) return numStripsAcross();
-  else return floor(parent_->meanWidth() / pitchEstimate() + 0.5);
+  if (!bigPixelsPerROCX()) return floor(parent_->meanWidth() / pitchEstimate() + 0.5);
+  const int numBigPixels = numROCX() * bigPixelsPerROCX();
+  return numBigPixels + floor((parent_->meanWidth() - numBigPixels * bigPixelPitchX()) / pitchEstimate() + 0.5);
 }
 int Sensor::numSegmentsEstimate() const {
   if (numSegments.state()) return numSegments();
-  else return floor(parent_->length() / stripLengthEstimate() + 0.5);
+  if (!bigPixelsPerROCY()) return floor(parent_->length() / stripLengthEstimate() + 0.5);
+  const int numBigPixels = numROCY() * bigPixelsPerROCY();
+  return numBigPixels + floor((parent_->length() - numBigPixels * bigPixelPitchY()) / stripLengthEstimate() + 0.5);
 }
 double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcrossEstimate(); }
 double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcrossEstimate(); }

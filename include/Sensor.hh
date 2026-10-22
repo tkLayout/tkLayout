@@ -40,6 +40,9 @@ public:
   ReadonlyProperty<double, NoDefault> stripLengthEstimate;
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
   ReadonlyProperty<bool, Default> isBricked;
+  ReadonlyProperty<int, Default> numBigPixelsPerROCX, numBigPixelsPerROCY;
+  ReadonlyProperty<double, NoDefault> bigPixelPitchX, bigPixelPitchY;
+  ReadonlyProperty<bool, Default> bigPixelsTwoEdgesX, bigPixelsTwoEdgesY;
   ReadonlyProperty<double, NoDefault> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
   ReadonlyProperty<double, Computable> minR, maxR;
@@ -62,6 +65,12 @@ public:
     numROCX("numROCX", parsedOnly()),
     numROCY("numROCY", parsedOnly()),
     isBricked("isBricked", parsedOnly(), false),
+    numBigPixelsPerROCX("numBigPixelsPerROCX", parsedOnly(), 0),
+    numBigPixelsPerROCY("numBigPixelsPerROCY", parsedOnly(), 0),
+    bigPixelPitchX("bigPixelPitchX", parsedOnly()),
+    bigPixelPitchY("bigPixelPitchY", parsedOnly()),
+    bigPixelsTwoEdgesX("bigPixelsTwoEdgesX", parsedOnly(), false),
+    bigPixelsTwoEdgesY("bigPixelsTwoEdgesY", parsedOnly(), false),
     sensorThickness("sensorThickness", parsedAndChecked()),
     type("sensorType", parsedOnly(), SensorType::None),
     powerPerChannel("powerPerChannel", parsedOnly()),
@@ -93,6 +102,11 @@ public:
   int numROCCols() const { return numSegmentsEstimate() / numROCY(); }
 
   int totalROCs() const { return numROCX() * numROCY(); }
+
+  // One-edge big pixels (IT) only sit at the boundaries between ROCs, so a direction with a single ROC has none.
+  // Two-edge big pixels (OT PS-p) sit at both edges of every ROC.
+  int bigPixelsPerROCX() const { return numBigPixelsPerROCX() && (bigPixelsTwoEdgesX() || numROCX() > 1) ? numBigPixelsPerROCX() : 0; }
+  int bigPixelsPerROCY() const { return numBigPixelsPerROCY() && (bigPixelsTwoEdgesY() || numROCY() > 1) ? numBigPixelsPerROCY() : 0; }
 
   int numCrystals() const { return numCrystalsX() * numCrystalsY(); }
   double alveolaWidth() const;

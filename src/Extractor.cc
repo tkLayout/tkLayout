@@ -24,6 +24,16 @@ namespace insur {
     double z = std::max(-1.0, std::min(1.0, v[2]));
     return std::acos(z) * (180.0 / M_PI);
   }
+  static void setBigPixels(ModuleROCInfo& minfo, const Sensor& sensor) {
+    const int bigX = sensor.bigPixelsPerROCX();
+    const int bigY = sensor.bigPixelsPerROCY();
+    minfo.bigpixx      = bigX ? any2str<int>(bigX) : "";
+    minfo.bigpixy      = bigY ? any2str<int>(bigY) : "";
+    minfo.bigpixpitchx = bigX ? any2str<double>(sensor.bigPixelPitchX() / Units::cm) : "";
+    minfo.bigpixpitchy = bigY ? any2str<double>(sensor.bigPixelPitchY() / Units::cm) : "";
+    minfo.bigpixtwoedgesx = bigX && sensor.bigPixelsTwoEdgesX() ? xml_true : "";
+    minfo.bigpixtwoedgesy = bigY && sensor.bigPixelsTwoEdgesY() ? xml_true : "";
+  }
   static double vecPhi(const std::array<double, 3>& v) {
     double p = std::atan2(v[1], v[0]) * (180.0 / M_PI);
     return (p < 0.0) ? p + 360.0 : p;
@@ -1472,6 +1482,7 @@ namespace insur {
                 }
 		minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 		minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+		setBigPixels(minfo, iiter->getModule().innerSensor());
 		mspec.moduletypes.push_back(minfo);
 
 		if (iiter->getModule().numSensors() == 2) { 
@@ -1517,6 +1528,7 @@ namespace insur {
                   }
 		  minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
 		  minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		  setBigPixels(minfo, iiter->getModule().outerSensor());
 		  mspec.moduletypes.push_back(minfo);
 		} // End of replica for Pt-modules
 	      }
@@ -1597,6 +1609,7 @@ namespace insur {
 		    minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 		    minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 		    minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+		    setBigPixels(minfo, iiter->getModule().innerSensor());
 		    mspec.moduletypes.push_back(minfo);
 		  }
 		}
@@ -2685,6 +2698,7 @@ namespace insur {
 	      minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 	      minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 	      minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+	      setBigPixels(minfo, iiter->getModule().innerSensor());
 	      mspec.moduletypes.push_back(minfo);
 
 	      if (iiter->getModule().numSensors() == 2) {
@@ -2717,6 +2731,7 @@ namespace insur {
 		minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
 		minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());
 		minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		setBigPixels(minfo, iiter->getModule().outerSensor());
 		mspec.moduletypes.push_back(minfo);
 	      }
 
@@ -3392,6 +3407,7 @@ namespace insur {
 	      minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 	      minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 	      minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
+	      setBigPixels(minfo, iiter->getModule().innerSensor());
 	      mspec.moduletypes.push_back(minfo);
 
 	      if (iiter->getModule().numSensors() == 2) {
@@ -3423,6 +3439,7 @@ namespace insur {
 		minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
 		minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());
 		minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
+		setBigPixels(minfo, iiter->getModule().outerSensor());
 		mspec.moduletypes.push_back(minfo);
 	      }
 
