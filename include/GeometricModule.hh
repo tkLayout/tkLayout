@@ -38,7 +38,8 @@ class GeometricModule : public ModuleDecorable {
 protected:
   int numHits_ = 0;
   bool flipped_ = false;
-  int tiltAngle_ = 0., skewAngle_ = 0.;
+  double tiltAngle_ = 0.;
+  double skewAngle_ = 0.;
   double zrotAngle_ = 0.;
   Polygon3d<4> basePoly_;
   std::vector<XYZVector> contour_;
@@ -76,7 +77,20 @@ public:
   double skewAngle() const { return skewAngle_; }
   double zrotAngle() const { return zrotAngle_; }
   bool flipped() const { return flipped_; }
-  bool flipped(bool newFlip) { flipped_=newFlip; return flipped_; }
+  bool flipped(bool shouldFlip) {
+    if (flipped_ != shouldFlip) {
+      // 180° rotation around the local Y axis
+      Polygon3d<4> flippedPoly;
+      flippedPoly << basePoly_.getVertex(1)
+                  << basePoly_.getVertex(0)
+                  << basePoly_.getVertex(3)
+                  << basePoly_.getVertex(2);
+      basePoly_ = flippedPoly;
+
+      flipped_ = shouldFlip;
+    }
+    return flipped_;
+  }
 
   void translate(const XYZVector& vector) { basePoly_.translate(vector); }
   void mirror(const XYZVector& vector) { basePoly_.mirror(vector); }

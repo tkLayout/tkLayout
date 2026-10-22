@@ -358,11 +358,34 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
       mod->myid(i+1);
     }
     mod->side(side);
-    mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
-    if (smallDelta() != 0) { mod->flipped(parity != 1); } // When smallDelta() != 0, the flip is alternated.
-    else { mod->flipped(!isPlusBigDeltaRod); } // When smallDelta() == 0, the flip only depends whether the rod is located at + BigDelta or at - BigDelta.
-    mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
-    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
+
+    // Execute transformations around the module's local axes
+    const auto center = mod->center();
+    mod->translate(-center);
+
+    const bool shouldFlip = (smallDelta() != 0)
+                             ? (parity != 1)        // When smallDelta() != 0, the flip is alternated
+                             : !isPlusBigDeltaRod;  // Otherwise, the flip depends whether the rod is located at + or - BigDelta
+
+    const bool shouldYaw = (mod->yawFlip() && (side == 1)) || (mod->yawFlipNeg() && (side == -1));
+
+    // Initial global orientation with skew
+    if (shouldYaw)
+      mod->yaw(M_PI);
+    mod->rotateY(M_PI_2 - mod->skewAngle());
+    mod->rotateX(mod->isPixelModule() ? -M_PI_2 : M_PI_2);
+
+    mod->flipped(shouldFlip);
+
+    // Restore the original position
+    mod->translate(center);
+
+    const double rOffset = (parity > 0) ? smallDelta() : -smallDelta();
+    mod->translateR(rOffset);
+
+    const double zOffset = (direction == BuildDir::RIGHT) ? (mod->length() * 0.5) : (-mod->length() * 0.5);
+    mod->translateZ(posList[i] + zOffset);
+
     modules.push_back(mod);
   }
 }
@@ -416,12 +439,6 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
     }
   }
 
-  // yawFlipping as last thing
-  for (auto& it : zPlusModules_)
-    if (it.yawFlip()) it.rotateXModCentre(M_PI);
-  for (auto& it : zMinusModules_)
-    if (it.yawFlipNeg()) it.rotateXModCentre(M_PI);
-
   currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.);
   maxZ(currMaxZ);
 }
@@ -470,29 +487,42 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   int i = 0;
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < (int)tmspecs.size(); i++, ++it) {
-    bool isTiltedModule = (tmspecs[i].gamma == 0);
-    //std::cout << "i = " << i << std::endl;
-    //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
-    //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
     mod->store(propertyTree());
-    if (mod->yawFlip() && (side==1)) mod->rotateXModCentre(M_PI);
-    if (mod->yawFlipNeg() && (side==-1)) mod->rotateXModCentre(M_PI);
-    // Use the yawFlipRods only for the tilted part
-    if (isTiltedModule)
-      for (auto& iRod : mod->yawFlipRods)
-        if (iRod == myid()) mod->rotateXModCentre(M_PI);
-    mod->tilt(side * tmspecs[i].gamma);
-    mod->translateR(tmspecs[i].r);
-    if (isTiltedModule) { // FLAT PART OF THE TILTED ROD
+
+    // Execute transformations around the module's local axes
+    const auto center = mod->center();
+    mod->translate(-center);
+
+    const double tiltAngle = side * tmspecs[i].gamma;
+    const bool isTiltedModule = tiltAngle != 0.;
+
+    bool shouldYaw = (mod->yawFlip() && (side == 1)) || (mod->yawFlipNeg() && (side == -1));
+    for (const auto& iRod : mod->yawFlipRods)
+      shouldYaw = (iRod == myid()) ? !shouldYaw : shouldYaw;
+
+    // Initial global orientation with skew
+    if (shouldYaw)
+      mod->yaw(M_PI);
+    mod->rotateY(M_PI_2 - mod->skewAngle());
+    mod->rotateX(M_PI_2);
+
+    if (isTiltedModule) {
+      mod->tilt(tiltAngle);
+      mod->flipped(flip);
+    }
+    else { // FLAT PART OF THE TILTED ROD
       if (!mod->isPixelModule()) mod->flipped(i%2);         // Rod in Outer Tracker: alternates flip along z. i is the ring number.
       else mod->flipped(flip);                              // Rod in Inner Tracker: all modules of a given rod have same flip. 
                                                             // (Modules of the lower radius rods are all flipped).
-    } 
-    else { mod->flipped(flip); } // TILTED PART OF THE TILTED ROD
+    }
+
+    mod->translate(center);
+    mod->translateR(tmspecs[i].r);
     mod->translateZ(side * tmspecs[i].z);
+
     modules.push_back(mod);
   }
 }
