@@ -994,6 +994,31 @@ namespace insur {
         }
       }
 
+      // IT BARREL: collect per-ladder placement data (phi, radius, flipped/skewed status), indexed by phi index.
+      // Used to replace DDTrackerAngularAlgorithm with explicit per-ladder DDTrackerXYZPosAlgo blocks.
+      struct ITLadderPlacementData {
+        double centerPhi;
+        double centerRadius;
+        bool isFlipped;
+        bool isSkewed;
+      };
+      std::map<int, ITLadderPlacementData> itLadderByPhiIdx;
+      if (isPixelTracker) {
+        for (auto& mod : *oiter) {
+          if (mod.getModule().uniRef().side > 0 && mod.getModule().uniRef().ring == 1) {
+            const int phiIdx = mod.getModule().uniRef().phi;
+            if (itLadderByPhiIdx.find(phiIdx) == itLadderByPhiIdx.end()) {
+              itLadderByPhiIdx[phiIdx] = {
+                mod.getModule().center().Phi(),
+                mod.getModule().center().Rho(),
+                mod.getModule().flipped(),
+                mod.getModule().isSkewed()
+              };
+            }
+          }
+        }
+      }
+
       // Determine the distinct yaw states across all rods (rounded to nearest degree).
       // phi==1 rod is always the "base" template (ladderName). Any additional yaw state
       // gets a secondary template named ladderName + "Yaw" + yaw_deg.
@@ -1837,13 +1862,15 @@ namespace insur {
       if (!isPixelTracker) {
 
         // Register a per-rod phi placement rotation and return its name.
-        // Returns "NULL" when phi_rad ≈ 0 (identity; no rotation tag needed).
+        // Always registers a named rotation, even for phi_rad ≈ 0 (identity), rather
+        // than returning the "NULL" sentinel: DDTrackerXYZPosAlgo's dd4hep plugin (currently)
+        // drops the explicit copy number when the rotation is "NULL" and lets DD4hep
+        // auto-assign one instead, which can collide with an explicitly-numbered
+        // sibling placed earlier in the same loop.
         auto registerRodPhiRotation = [&](double phi_rad) -> std::string {
           const double phi_deg = phi_rad * (180.0 / M_PI);
           double norm_deg = std::fmod(phi_deg, 360.0);
           if (norm_deg < 0.0) norm_deg += 360.0;
-          // CMSSW tolerance. TODO: Encapsulate it in a function.
-          if (std::fabs(norm_deg) < 1e-6 || std::fabs(norm_deg - 360.0) < 1e-6) return "NULL";
           std::ostringstream rotName;
           rotName << lname.str() << "_RodPhi" << static_cast<int>(std::round(norm_deg * 10.0));
           const std::string name = rotName.str();
@@ -1898,8 +1925,7 @@ namespace insur {
             const double yawDeg = std::round(data.yaw * 180.0 / M_PI);
             const std::string& templateName = yawDegToTemplateName.at(yawDeg);
             const std::string rotName = registerRodPhiRotation(data.centerPhi);
-            const std::string rotEntry = (rotName == "NULL") ? "NULL"
-                                                             : trackerXmlTags.nspace + ":" + rotName;
+            const std::string rotEntry = trackerXmlTags.nspace + ":" + rotName;
             alg.name   = xml_xyzpos_algo;
             alg.parent = trackerXmlTags.nspace + ":" + lname.str();
             alg.parameters.push_back(stringParam(xml_childparam,
@@ -2010,207 +2036,80 @@ namespace insur {
         }
       }
 
-      // INNER TRACKER
+      // INNER TRACKER: replace DDTrackerAngularAlgorithm with explicit per-ladder DDTrackerXYZPosAlgo blocks.
       else {
 
-	// COMMON ALGORITHM PARAMETERS
 	const std::string nameSpace = trackerXmlTags.nspace;
 	const std::string parentName = lname.str();
-	const XYZVector center = XYZVector(0., 0., 0.);
-	const int copyNumberIncrement = 2;
 
+	// Register a per-ladder phi-rotation around Z and return its name.
+	// Always registers a named rotation, even for phi_rad ≈ 0 (identity) -- see
+	// registerRodPhiRotation above for why the "NULL" sentinel is avoided.
+	auto registerLadderPhiRotation = [&](double phi_rad) -> std::string {
+	  const double phi_deg = phi_rad * 180.0 / M_PI;
+	  double norm_deg = std::fmod(phi_deg, 360.0);
+	  if (norm_deg < 0.0) norm_deg += 360.0;
+	  std::ostringstream rotName;
+	  rotName << lname.str() << "_LadderPhi" << static_cast<int>(std::round(norm_deg * 10.0));
+	  const std::string name = rotName.str();
+	  if (r.find(name) == r.end()) {
+	    Rotation rot;
+	    rot.name   = name;
+	    rot.thetax = 90.0; rot.phix = norm_deg;
+	    rot.thetay = 90.0; rot.phiy = norm_deg + 90.0;
+	    rot.thetaz = 0.0;  rot.phiz = 0.0;
+	    r.insert(std::make_pair(name, rot));
+	  }
+	  return name;
+	};
 
-	// NON-SKEWED LAYER
+	// Emit one DDTrackerXYZPosAlgo block per ladder from the pre-pass map.
+	auto emitITLadderAlgo = [&](int phiIdx, const ITLadderPlacementData& data) {
+	  const std::string& templateName = data.isFlipped ? ladderName.str() : unflippedLadderName.str();
+	  const std::string rotName = registerLadderPhiRotation(data.centerPhi);
+	  const std::string rotEntry = nameSpace + ":" + rotName;
+	  alg.name   = xml_xyzpos_algo;
+	  alg.parent = nameSpace + ":" + parentName;
+	  alg.parameters.push_back(stringParam(xml_childparam, nameSpace + ":" + templateName));
+	  pconverter.str(""); pconverter << phiIdx;
+	  alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	  alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	  alg.parameters.push_back(arbitraryLengthVector("XPositions",
+	      std::vector<double>{data.centerRadius * std::cos(data.centerPhi)}));
+	  alg.parameters.push_back(arbitraryLengthVector("YPositions",
+	      std::vector<double>{data.centerRadius * std::sin(data.centerPhi)}));
+	  alg.parameters.push_back(arbitraryLengthVector("ZPositions",
+	      std::vector<double>{0.0}));
+	  alg.parameters.push_back(arbitraryLengthStringVector("Rotations",
+	      std::vector<std::string>{rotEntry}));
+	  a.push_back(alg);
+	  alg.parameters.clear();
+	};
+
+	// NON-SKEWED LAYER: one XYZPosAlgo block per ladder, copy number = phi index.
 	if (!isSkewedLayer) {
-	  
-	  // COMMON ALGORITHM PARAMETERS
-	  const double rangeAngle = 2. * M_PI;	  
-	  const int numberLadders = lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;	 
-
-	  // FIRST PHI LADDERS ALGORITHM
-	  const std::string firstPhiLadderName = ladderName.str();
-	  const double firstPhiLadderCenterPhi = firstPhiRodMeanPhi;
-	  const double firstPhiLadderRadius = firstPhiRodRadius;
-	  const int firstPhiLadderStartCopyNumber = 1;
-
-	  createAndStoreDDTrackerAngularAlgorithmBlock(a,
-						       nameSpace, 
-						       parentName,
-						       firstPhiLadderName,
-						       firstPhiLadderCenterPhi,
-						       rangeAngle,
-						       firstPhiLadderRadius,
-						       center,
-						       numberLadders,
-						       firstPhiLadderStartCopyNumber,
-						       copyNumberIncrement);
-
-	  // NEXT PHI LADDERS ALGORITHM
-	  const std::string nextPhiLadderName = unflippedLadderName.str();
-	  const double nextPhiLadderCenterPhi = nextPhiRodMeanPhi;
-	  const double nextPhiLadderRadius = nextPhiRodRadius;
-	  const int nextPhiLadderStartCopyNumber = 2;
-
-	  createAndStoreDDTrackerAngularAlgorithmBlock(a,
-						       nameSpace, 
-						       parentName,
-						       nextPhiLadderName,
-						       nextPhiLadderCenterPhi,						    
-						       rangeAngle,
-						       nextPhiLadderRadius,
-						       center,
-						       numberLadders,
-						       nextPhiLadderStartCopyNumber,
-						       copyNumberIncrement);
+	  for (const auto& [phiIdx, data] : itLadderByPhiIdx) {
+	    emitITLadderAlgo(phiIdx, data);
+	  }
 	}
 
-	// SKEWED LAYER
+	// SKEWED LAYER: unskewed ladders via per-ladder XYZPosAlgo; skewed ladders remain explicit.
 	// WARNING: This assumes that, per (X) side:
 	// - there is only 1 skewed ladder (placed at outer radius).
 	// - there is an odd number of non-skewed ladders (>=3).
-
-	// ALGO BLOCKS TO PLACE UNSKEWED LADDERS
 	else {
 
-	  // (-X) SIDE
-	  if (countUnskewedLaddersAtMinusXSide <= 2 || femod(countUnskewedLaddersAtMinusXSide, 2) == 0) { 
-	    logERROR("Skewed layer: It is expected to have an odd number (>=3) of non-skewed ladders per (X) side."); 
+	  if (countUnskewedLaddersAtMinusXSide <= 2 || femod(countUnskewedLaddersAtMinusXSide, 2) == 0) {
+	    logERROR("Skewed layer: It is expected to have an odd number (>=3) of non-skewed ladders per (X) side.");
 	  }
-	  else {
-
-	    // COMMON ALGORITHM PARAMETERS
-	    const double rangeAngleAtMinusXSide = femod(
-							femod(unskewedLaddersAtMinusXSideCentersMaxPhi, 2. * M_PI) 
-							- femod(unskewedLaddersAtMinusXSideCentersMinPhi, 2. * M_PI)
-							, 2. * M_PI);
-
-	    // FLIPPED LADDERS BLOCK (INNER RADIUS)
-	    // flipped ladders
-	    const std::string flippedLadderName = ladderName.str();
-	    // phi
-	    const double flippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi; // WARNING: THIS ASSUMES
-	                                                                                    // that the non-skewed ladder placed at min phi 
-	                                                                                    // is placed at inner radius and flipped!!!
-	    // number of flipped ladders
-	    const int countFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.) + 1; // WARNING: THIS ASSUMES
-	                                                                                                       // that there is an odd number of 
-                                                                                                               // non-skewed ladders: 
-	                                                                                                       // 1 more ladder at inner radius.
-	    // start copy number
-	    const int flippedLadderStartCopyNumber = 1;
-
-	    // algo block
-	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
-							 nameSpace, 
-							 parentName,
-							 flippedLadderName,
-							 flippedLadderCenterPhi,
-							 rangeAngleAtMinusXSide,
-							 innerLadderCenterRadius,
-							 center,
-							 countFlippedLaddersAtMinusXSide,
-							 flippedLadderStartCopyNumber,
-							 copyNumberIncrement);	  
-
-	    // UNFLIPPED LADDERS BLOCK (OUTER RADIUS)
-	    // non-flipped ladders
-	    const std::string unFlippedLadderName = unflippedLadderName.str();
-	    // delta phi between 2 consecutive non-skewed ladders 
-	    const double deltaPhiAtMinusXSide = rangeAngleAtMinusXSide / (countUnskewedLaddersAtMinusXSide - 1);
-	    // phi
-	    const double unFlippedLadderCenterPhi = unskewedLaddersAtMinusXSideCentersMinPhi + deltaPhiAtMinusXSide;
-	    // number of non-flipped ladders
-	    const int countUnFlippedLaddersAtMinusXSide = std::floor(countUnskewedLaddersAtMinusXSide / 2.); // WARNING: THIS ASSUMES
-	                                                                                                     // that there is an odd number of 
-                                                                                                             // non-skewed ladders: 
-	                                                                                                     // 1 less ladder at outer radius.
-	    // start copy number
-	    const int unFlippedLadderStartCopyNumber = 2;
-
-	    // algo block
-	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
-							 nameSpace, 
-							 parentName,
-							 unFlippedLadderName,
-							 unFlippedLadderCenterPhi,
-							 rangeAngleAtMinusXSide - 2. * deltaPhiAtMinusXSide,
-							 outerLadderCenterRadius,
-							 center,
-							 countUnFlippedLaddersAtMinusXSide,
-							 unFlippedLadderStartCopyNumber,
-							 copyNumberIncrement);
-	  }
-	  
-
-	  // (+X) side
-	  if (countUnskewedLaddersAtMinusXSide <= 2 || femod(countUnskewedLaddersAtMinusXSide, 2) == 0) { 
-	    logERROR("Skewed layer: It is expected to have an odd number (>=3) of non-skewed ladders per (X) side."); 
-	  }
-	  else {
-
-	    // COMMON ALGORITHM PARAMETERS 
-	    const double rangeAngleAtPlusXSide = femod(
-						       femod(unskewedLaddersAtPlusXSideCentersMaxPhi, 2. * M_PI) 
-						       - femod(unskewedLaddersAtPlusXSideCentersMinPhi, 2. * M_PI)
-						       , 2.*M_PI);
-
-	    // FLIPPED LADDERS BLOCK (INNER RADIUS)
-	    // flipped ladders
-	    const std::string flippedLadderName = ladderName.str();
-	    // phi	  
-	    const double flippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi; // WARNING: THIS ASSUMES
-	                                                                                    // that the non-skewed ladder placed at min phi 
-	                                                                                    // is placed at inner radius and flipped!!!
-	    // number of flipped ladders
-	    const int countFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.) + 1; // WARNING: THIS ASSUMES
-	                                                                                                     // that there is an odd number of 
-                                                                                                             // non-skewed ladders: 
-	                                                                                                     // 1 more ladder at inner radius.
-	    // start copy number
-	    const int flippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 1;
-
-	    // algo block
-	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
-							 nameSpace, 
-							 parentName,
-							 flippedLadderName,
-							 flippedLadderCenterPhi,
-							 rangeAngleAtPlusXSide,
-							 innerLadderCenterRadius,
-							 center,
-							 countFlippedLaddersAtPlusXSide,
-							 flippedLadderStartCopyNumber,
-							 copyNumberIncrement);	  
-
-	    // UNFLIPPED LADDERS BLOCK (OUTER RADIUS)
-	    // non-flipped ladders
-	    const std::string unFlippedLadderName = unflippedLadderName.str();
-	    // delta phi between 2 consecutive non-skewed ladders
-	    const double deltaPhiAtPlusXSide = rangeAngleAtPlusXSide / (countUnskewedLaddersAtPlusXSide - 1);
-	    // phi
-	    const double unFlippedLadderCenterPhi = unskewedLaddersAtPlusXSideCentersMinPhi + deltaPhiAtPlusXSide;
-	    // number of non-flipped ladders
-	    const int countUnFlippedLaddersAtPlusXSide = std::floor(countUnskewedLaddersAtPlusXSide / 2.); // WARNING: THIS ASSUMES
-	                                                                                                   // that there is an odd number of 
-                                                                                                           // non-skewed ladders: 
-	                                                                                                   // 1 less ladder at outer radius.
-	    // start copy number
-	    const int unFlippedLadderStartCopyNumber = countUnskewedLaddersAtMinusXSide + 2;
-
-	    // algo block
-	    createAndStoreDDTrackerAngularAlgorithmBlock(a,
-							 nameSpace, 
-							 parentName,
-							 unFlippedLadderName,
-							 unFlippedLadderCenterPhi,
-							 rangeAngleAtPlusXSide - 2. * deltaPhiAtPlusXSide,
-							 outerLadderCenterRadius,
-							 center,
-							 countUnFlippedLaddersAtPlusXSide,
-							 unFlippedLadderStartCopyNumber,
-							 copyNumberIncrement);
+	  if (countUnskewedLaddersAtPlusXSide <= 2 || femod(countUnskewedLaddersAtPlusXSide, 2) == 0) {
+	    logERROR("Skewed layer: It is expected to have an odd number (>=3) of non-skewed ladders per (X) side.");
 	  }
 
+	  // Unskewed ladders: one XYZPosAlgo block each, copy number = phi index from pre-pass.
+	  for (const auto& [phiIdx, data] : itLadderByPhiIdx) {
+	    if (!data.isSkewed) emitITLadderAlgo(phiIdx, data);
+	  }
 
 	  const int countTotalUnskewedLadders = countUnskewedLaddersAtMinusXSide + countUnskewedLaddersAtPlusXSide;
 
@@ -2223,10 +2122,10 @@ namespace insur {
 	  pos.trans.dy = skewedLadderAtMinusXSideCenterRadius * sin(skewedLadderAtMinusXSideCenterPhi);
 	  pos.trans.dz = 0;
 
-	  const double skewRotationAngleInRadAtMinusXSide = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;	    
+	  const double skewRotationAngleInRadAtMinusXSide = skewedLadderAtMinusXSideCenterPhi + skewedLadderAtMinusXSideSkewAngle;
 	  const std::string skewRotationNameAtMinusXSide = "Z" + any2str(skewRotationAngleInRadAtMinusXSide * 180. / M_PI, xml_angle_name_precision);
 	  addRotationAroundZAxis(r, skewRotationNameAtMinusXSide, skewRotationAngleInRadAtMinusXSide);
-	  
+
 	  pos.rotref = nameSpace + ":" + skewRotationNameAtMinusXSide;
 	  pos.copy = countTotalUnskewedLadders + 1;
 	  p.push_back(pos);
@@ -2244,7 +2143,7 @@ namespace insur {
 	  const double skewRotationAngleInRadAtPlusXSide = skewedLadderAtPlusXSideCenterPhi + skewedLadderAtPlusXSideSkewAngle;
 	  const std::string skewRotationNameAtPlusXSide = "Z" + any2str(skewRotationAngleInRadAtPlusXSide * 180. / M_PI, xml_angle_name_precision);
 	  addRotationAroundZAxis(r, skewRotationNameAtPlusXSide, skewRotationAngleInRadAtPlusXSide);
-	  
+
 	  pos.rotref = nameSpace + ":" + skewRotationNameAtPlusXSide;
 	  pos.copy = countTotalUnskewedLadders + 2;
 	  p.push_back(pos);
@@ -3122,14 +3021,14 @@ namespace insur {
                             phiy = phi_deg + yaw_deg + 180.0;
                             thetaz = 0.0;
                         } else {
-                            phix = phi_deg - yaw_deg - 90.0;
-                            phiy = phi_deg - yaw_deg + 180.0;
+                            phix = phi_deg + yaw_deg - 90.0;
+                            phiy = phi_deg + yaw_deg + 180.0;
                             thetaz = 180.0;
                         }
                     } else { // isZMinus
                         if (!isFlipped) {
-                            phix = phi_deg - yaw_deg + 90.0;
-                            phiy = phi_deg - yaw_deg;
+                            phix = phi_deg + yaw_deg + 90.0;
+                            phiy = phi_deg + yaw_deg;
                             thetaz = 180.0;
                         } else {
                             phix = phi_deg + yaw_deg - 90.0;
@@ -3429,42 +3328,19 @@ namespace insur {
         int nRings = ringsIndexes.size();
 
       
-        std::map<int, std::vector<double>> phi_one;
-        std::map<int, std::vector<double>> phi_two;
-        std::map<int, std::vector<double>> radius_one;
-        std::map<int, std::vector<double>> radius_two;
-        std::map<int, std::vector<double>> yaw_one;
-        std::map<int, std::vector<double>> yaw_two;
-
-        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++){
-          if(!iiter->getModule().inRegularRing()){ //Don't need to check this for every endcap ring, only modules that are NOT in a regular ring
-            if(phi_one.count(iiter->getModule().uniRef().ring)==0){
-              phi_one[iiter->getModule().uniRef().ring] = std::vector<double>();
-            } 
-            if(radius_one.count(iiter->getModule().uniRef().ring)==0){
-              radius_one[iiter->getModule().uniRef().ring] = std::vector<double>();
-            } 
-            if(yaw_one.count(iiter->getModule().uniRef().ring)==0){
-              yaw_one[iiter->getModule().uniRef().ring] = std::vector<double>();
-            } 
-            if(phi_two.count(iiter->getModule().uniRef().ring)==0){
-              phi_two[iiter->getModule().uniRef().ring] = std::vector<double>();
-            }
-            if(radius_two.count(iiter->getModule().uniRef().ring)==0){
-              radius_two[iiter->getModule().uniRef().ring] = std::vector<double>();
-            }
-            if(yaw_two.count(iiter->getModule().uniRef().ring)==0){
-              yaw_two[iiter->getModule().uniRef().ring] = std::vector<double>();
-            }
-            if(iiter->getModule().uniRef().phi%2 == 1){
-              phi_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
-              radius_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              yaw_one[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
-            } else {
-              phi_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Phi()*180./M_PI);
-              radius_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().center().Rho());
-              yaw_two[iiter->getModule().uniRef().ring].push_back(iiter->getModule().yawAngle()*180./M_PI);
-            }
+        // Per-module placement data indexed by [ring][phi_index]. Replaces DDTrackerRingAlgo.
+        struct SDModuleData { double phi_deg; double radius; double yaw_deg; bool isFlipped; };
+        std::map<int, std::map<int, SDModuleData>> modulesByRingPhi;
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+          const int ring   = iiter->getModule().uniRef().ring;
+          const int phiIdx = iiter->getModule().uniRef().phi;
+          if (modulesByRingPhi[ring].find(phiIdx) == modulesByRingPhi[ring].end()) {
+            modulesByRingPhi[ring][phiIdx] = {
+              iiter->getModule().center().Phi() * 180.0 / M_PI,
+              iiter->getModule().center().Rho(),
+              iiter->getModule().yawAngle() * 180.0 / M_PI,
+              iiter->getModule().flipped()
+            };
           }
         }
 
@@ -3802,81 +3678,60 @@ namespace insur {
               rspec.partselectors.push_back(logic.name_tag);
               rspec.moduletypes.push_back(minfo_zero);
 
-	      // Ring Surface 1 (half the modules - subdisk 1)
-	      if(sdIndex==1){
-                alg.name = xml_trackerring_algo;
-                if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
-                alg.parent = logic.shape_tag;
-                alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
-                pconverter << (myRingInfo.numModules / 2);
-                alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-                pconverter.str("");
-                alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-                alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-                pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
-                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-                pconverter.str("");
-                pconverter << myRingInfo.radiusMid << "*mm";
-                alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-                pconverter.str("");
-                if(!myRingInfo.isRegularRing && (phi_one[ringIndex]).size()>0){
-                  alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_one[ringIndex]));
-                  pconverter.str("");
-                  alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_one[ringIndex]));
-                  pconverter.str("");
-                  alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_one[ringIndex]));
-                  pconverter.str("");
-                } 
-	        alg.parameters.push_back(vectorParam(0, 0, 0));
-	        pconverter << myRingInfo.isDiskAtPlusZEnd;
-	        alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	        pconverter.str("");
-	        alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	        pconverter << myRingInfo.surface1IsFlipped;
-                alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-                pconverter.str("");
-                a.push_back(alg);
-                alg.parameters.clear();
-              }
+	      // Emit one DDTrackerXYZPosAlgo block per module for this subdisk's surface.
+	      // Rotation formula: exact algebraic expansion of R_phi * R_tilt(90) * R_flip * R_yaw.
+	      auto registerEndcapModuleRotation = [&](double phi_deg, double yaw_deg, bool isZPlus, bool isFlipped) -> std::string {
+	        double norm_phi = std::fmod(phi_deg, 360.0);
+	        if (norm_phi < 0.0) norm_phi += 360.0;
+	        std::ostringstream rotName;
+	        rotName << "EMod_Phi" << static_cast<int>(std::round(norm_phi * 10.0))
+	                << "_Yaw"    << static_cast<int>(std::round(yaw_deg * 10.0))
+	                << (isZPlus ? "_ZPlus" : "_ZMinus")
+	                << (isFlipped ? "_Flipped" : "");
+	        const std::string name = rotName.str();
+	        if (r.find(name) == r.end()) {
+	          double phix = 0.0, phiy = 0.0, thetaz = 0.0;
+	          if (isZPlus) {
+	            if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 0.0; }
+	            else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg + 180.0; thetaz = 180.0; }
+	          } else {
+	            if (!isFlipped) { phix = phi_deg + yaw_deg + 90.0; phiy = phi_deg + yaw_deg;         thetaz = 180.0; }
+	            else            { phix = phi_deg + yaw_deg - 90.0; phiy = phi_deg + yaw_deg;         thetaz = 0.0; }
+	          }
+	          Rotation rot;
+	          rot.name = name;
+	          rot.thetax = 90.0; rot.phix = std::fmod(phix + 3600.0, 360.0);
+	          rot.thetay = 90.0; rot.phiy = std::fmod(phiy + 3600.0, 360.0);
+	          rot.thetaz = thetaz; rot.phiz = 0.0;
+	          r.insert(std::make_pair(name, rot));
+	        }
+	        return name;
+	      };
 
-	      // Ring Surface 2 (half the modules - subdisk 2)
-	      if(sdIndex==2){
-                alg.name = xml_trackerring_algo;
-                if(!myRingInfo.isRegularRing) alg.name=xml_trackerring_irregular_algo;
-                alg.parent = logic.shape_tag;
-                alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
-                pconverter << (myRingInfo.numModules / 2);
-                alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-                pconverter.str("");
-                alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-                alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-                pconverter << myRingInfo.surface1StartPhi * 180. / M_PI << "*deg";
-                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-                pconverter.str("");
-                pconverter << myRingInfo.radiusMid << "*mm";
-                alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-                pconverter.str("");
-                if(!myRingInfo.isRegularRing && (phi_two[ringIndex]).size()>0 ){
-                  alg.parameters.push_back(arbitraryLengthVector("phiAngleValues",phi_two[ringIndex]));
-                  pconverter.str("");
-                  alg.parameters.push_back(arbitraryLengthVector("yawAngleValues",yaw_two[ringIndex]));
-                  pconverter.str("");
-                  alg.parameters.push_back(arbitraryLengthVector("radiusValues",radius_two[ringIndex]));
-                  pconverter.str("");
-                } 
-	        alg.parameters.push_back(vectorParam(0, 0, 0));
-	        pconverter << myRingInfo.isDiskAtPlusZEnd;
-	        alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
-	        pconverter.str("");
-	        alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	        pconverter << myRingInfo.surface1IsFlipped;
-	        alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
-	        pconverter.str("");
-                a.push_back(alg);
-                alg.parameters.clear();
-              }
+	      const int sdPhiParity = sdIndex % 2; // 1 = odd phi (SD1), 0 = even phi (SD2)
+	      const auto& ringModules = modulesByRingPhi[ringIndex];
+	      for (const auto& [phiIdx, modData] : ringModules) {
+	        if (phiIdx % 2 != sdPhiParity) continue;
+	        const double phi_rad = modData.phi_deg * M_PI / 180.0;
+	        const std::string rotName = registerEndcapModuleRotation(
+	          modData.phi_deg, modData.yaw_deg, myRingInfo.isDiskAtPlusZEnd, modData.isFlipped);
+	        alg.name = xml_xyzpos_algo;
+	        alg.parent = logic.shape_tag;
+	        alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + myRingInfo.childname));
+	        pconverter.str(""); pconverter << phiIdx;
+	        alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	        alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	        alg.parameters.push_back(arbitraryLengthVector("XPositions",
+	            std::vector<double>{modData.radius * std::cos(phi_rad)}));
+	        alg.parameters.push_back(arbitraryLengthVector("YPositions",
+	            std::vector<double>{modData.radius * std::sin(phi_rad)}));
+	        alg.parameters.push_back(arbitraryLengthVector("ZPositions",
+	            std::vector<double>{0.0}));
+	        alg.parameters.push_back(arbitraryLengthStringVector("Rotations",
+	            std::vector<std::string>{trackerXmlTags.nspace + ":" + rotName}));
+	        a.push_back(alg);
+	        alg.parameters.clear();
+	      }
             }
           }
           //subdisc
