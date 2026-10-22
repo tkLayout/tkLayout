@@ -164,6 +164,8 @@ namespace insur {
      const double getExpandedModuleThickness() const { return expandedModThickness; }
      double getRmin() const { return rmin; }
      double getRmax() const { return rmax; }
+     double getEdgeAwareRmin() const;
+     double getEdgeAwareRmax() const;
      double getXmin() const { return xmin; }
      double getXmax() const { return xmax; }
      double getYmin() const { return ymin; }
