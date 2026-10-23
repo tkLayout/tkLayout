@@ -1,0 +1,22 @@
+// (6+1) High-Speed TWP / module
+
+Component {
+  componentName "Cabling: E-links"
+  service true
+  scaleOnSensor 0
+  // Two conductors
+  Element {
+    elementName Cu_Elinks_TBPX_L1
+    quantity 1.015 //it was 1.547
+    unit g/m
+    targetVolume 1
+    //Angela: 2.03 g/m divided by 7 elinks and times 3.5 because we have 3.5 elinks per module
+  }
+  // Two insulations
+  Element {
+    elementName Kapton
+    quantity 0.134
+    unit g/m
+    targetVolume 1
+  }
+}

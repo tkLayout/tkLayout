@@ -1,0 +1,113 @@
+// MATERIALS COMMON TO ALL MODULES TYPES
+// This obviously does not include bumps, ROC, cooling blocks, connectivity (dedicated ModuleMaterials files).
+
+
+Component {
+  componentName "HDI: Layer 0 /5- Coverlay1 (Epoxy)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Epoxy
+    quantity 0.0364
+    unit g                                             
+    targetVolume 1
+    //Angela: 1.092/6/5
+  }
+}
+
+Component {
+  componentName "HDI: Prepreg (3 layers)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Prepreg
+    quantity 0.063
+    unit g
+    targetVolume 1
+    //Angela: 5.670/18/5
+  }
+}
+
+Component {
+  componentName "HDI: Layer 1"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Cu
+    quantity 0.012
+    unit g
+    targetVolume 1
+    //Angela: 0.364/6/5
+  }
+}
+
+Component {
+  componentName "HDI: Layer 2"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Al
+    quantity 0.022
+    unit g
+    targetVolume 1
+    //Angela: 0.674/6/5
+  }
+}
+
+Component {
+  componentName "HDI: Layer 3"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Cu
+    quantity 0.009
+    unit g
+    targetVolume 1
+    //Angela: 0.297/6/5
+  }
+}
+
+Component {
+  componentName "HDI: Layer 4"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName	Al
+    quantity 0.0226
+    unit g
+    targetVolume 1
+    //Angela: 0.678/6/5
+  }
+}
+
+
+Component {
+  componentName "IT Module: Glue (between sensor and HDI)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Epoxy
+    quantity 0.03     // Source: [IT_MODULE_2019_03_21_MB]
+    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+                      // APPROXIMATION: Takes slightly bigger thickness, because only multiplied by active sensor area.
+    targetVolume 1
+  }
+}
+
+
+
+Component {
+  componentName "IT Module: Glue (between ROC and rails)"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Epoxy
+    quantity 0.03     // Source: [IT_MODULE_2019_03_21_MB]
+    unit mm           // Watch out! all quantities in mm are scaled on the surface of the ACTIVE SENSOR (width x length parameters)
+                      // APPROXIMATION: takes slightly bigger thickness, because only multiplied by active sensor area.
+                      // APPROXIMATION: takes same weights for all types of modules.
+                      // Can be set in dedicated files later, but this is better than nothing.
+    targetVolume 3
+  }
+}
+
