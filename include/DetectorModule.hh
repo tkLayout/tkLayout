@@ -384,7 +384,7 @@ public:
   }
 
   // AIR-envelope thickness for ModuleComplex's symmetric bounding box: large enough to
-  // enclose the asymmetrically-placed SupportPlate. NOT a physical/material thickness.
+  // enclose the asymmetric stack (OT: SupportPlate; pixel: chip vs hybrid). NOT a physical/material thickness.
   static double computeEnclosingModThickness(bool isPixel, bool isTiming, double dsDistance,
                                              double sensorThickness, double supportPlateThickness,
                                              double chipThickness, double hybridThickness) {
@@ -395,8 +395,11 @@ public:
                                          supportPlateThickness, chipThickness, hybridThickness)
              + supportPlateThickness;
     }
-    return computeExpandedModThickness(isPixel, isTiming, dsDistance, sensorThickness,
-                                       supportPlateThickness, chipThickness, hybridThickness);
+    const double expandedModThickness = computeExpandedModThickness(isPixel, isTiming, dsDistance, sensorThickness,
+                                                                    supportPlateThickness, chipThickness, hybridThickness);
+    // Pixel: material span is t_s + chip + hybrid, centered on the sensor. Mirror the thicker side
+    // to make the box symmetric about z=0.
+    return isPixel ? expandedModThickness + fabs(chipThickness - hybridThickness) : expandedModThickness;
   }
 
   std::map<std::string, double> extremaWithHybrids() const;
