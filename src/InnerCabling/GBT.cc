@@ -2,12 +2,11 @@
 #include "InnerCabling/InnerBundle.hh"
 
 
-GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexInPowerChain, const int numELinksPerModule) :
+GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexInPowerChain) :
   myGBTId_(GBTId),
   myGBTCMSSWId_(0), // Need to have consecutive integers, hence is done after full cabling map is created.
   myGBTIndexInPowerChain_(myGBTIndexInPowerChain),
-  plotStyleGBTIndexInPowerChain_(computePlotStyleGBTIndexInPowerChain(myGBTIndexInPowerChain, myPowerChain)),
-  numELinksPerModule_(numELinksPerModule)
+  plotStyleGBTIndexInPowerChain_(computePlotStyleGBTIndexInPowerChain(myGBTIndexInPowerChain, myPowerChain))
 {
   myPowerChain_ = myPowerChain;
   plotPowerChainColor_ = computePlotColor(myPowerChain);
@@ -17,7 +16,10 @@ GBT::GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndex
 /*
  *  Assign a module to the GBT.
  */
-void GBT::addModule(Module* m) { 
+void GBT::addModule(Module* m, const int numELinks) {
+  if (m == nullptr) throw PathfulException("GBT::addModule Error: Module pointer is nullptr");
+  m->setGBT(this);
+  m->setNumELinks(numELinks);
   modules_.push_back(m);
 }
 

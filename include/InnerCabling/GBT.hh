@@ -24,13 +24,18 @@ class GBT : public PropertyObject, public Buildable, public Identifiable<int> {
   typedef std::vector<Module*> Container; 
 
 public:
-  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexColor, const int numELinksPerModule);
+  GBT(PowerChain* myPowerChain, const std::string GBTId, const int myGBTIndexColor);
 
   // MODULES CONNECTED TO THE GBT
   const Container& modules() const { return modules_; }
-  const int numModules() const { return modules_.size(); }
-  void addModule(Module* m);
-  const int numELinks() const { return numELinksPerModule_ * numModules(); } 
+  int numModules() const { return modules_.size(); }
+  void addModule(Module* m, const int numELinks);
+  int numELinks() const {
+    int numELinks = 0;
+    for (const auto& m : modules_)
+      numELinks += m->numELinks();
+    return numELinks;
+  }
 
   // BUNDLE TO WHICH THE GBT IS CONECTED
   void setBundle(InnerBundle* bundle) { myBundle_ = bundle; }
@@ -52,7 +57,6 @@ public:
   const int getCMSSWId() const { return myGBTCMSSWId_; }
   const int GBTIndexInPowerChain() const { return myGBTIndexInPowerChain_; } // GBT location index in power chain
   const int plotStyleGBTIndexInPowerChain() const { return plotStyleGBTIndexInPowerChain_; } // GBT plotting style
-  const int numELinksPerModule() const { return numELinksPerModule_; }
   
   const bool isPositiveZEnd() const { return myPowerChain_->isPositiveZEnd(); }
   const bool isPositiveXSide() const { return myPowerChain_->isPositiveXSide(); }
@@ -83,7 +87,6 @@ private:
   int myGBTCMSSWId_;
   int myGBTIndexInPowerChain_;
   int plotStyleGBTIndexInPowerChain_;
-  int numELinksPerModule_;
 
   int plotPowerChainColor_;
 };

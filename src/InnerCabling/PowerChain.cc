@@ -47,7 +47,10 @@ const PowerChainType PowerChain::powerChainType() const {
     return PowerChainType::IUNDEFINED;
   }
   else {
-    const int numROCsPerModule = modules().front()->outerSensor().totalROCs();
+    // Generalization when using split-sensors for TPBX-L1
+    const int numROCsPerSensor = modules().front()->outerSensor().totalROCs();
+    const int numROCsPerModule = numROCsPerSensor * modules().front()->numSensors();
+
     if (numROCsPerModule == 2) return PowerChainType::I4A;
     else if (numROCsPerModule == 4) return PowerChainType::I8A;
     else {

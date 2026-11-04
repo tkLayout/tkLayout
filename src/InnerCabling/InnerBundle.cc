@@ -19,7 +19,9 @@ InnerBundle::InnerBundle(const int bundleId, const bool isPositiveZEnd, const bo
 /*
  *  Connect a GBT to the Bundle.
  */
-void InnerBundle::addGBT(GBT* myGBT) { 
+void InnerBundle::addGBT(GBT* myGBT) {
+  if (myGBT == nullptr) throw PathfulException("InnerBundle::addGBT Error: GBT pointer is nullptr");
+  myGBT->setBundle(this);
   GBTs_.push_back(myGBT);
 }
 
