@@ -859,7 +859,7 @@ namespace material {
         int attachPoint;
 
         //if the module is in z plus
-        if(module.maxZ() > 0) {
+        if(module.side() > 0) {
           if(module.maxZ() <= currLayer_->maxZwithHybrids()) {
             attachPoint = discretize(module.maxZ());
           } else {
@@ -1492,6 +1492,21 @@ namespace material {
       const std::vector<std::string> unitsToPassRodMM = {"mm"};
       const std::vector<std::string> unitsToPassLayer = {"g", "g/m", "mm"};
       const std::vector<std::string> unitsToPassLayerServ = {"g/m", "mm"};
+      const std::vector<std::string> unitsToPassServices = {"g/m"};
+
+      bool rodHasCentralModule_ = false;
+
+      bool isCentralModule(const BarrelModule& module) const {
+        return rodHasCentralModule_ && module.side() > 0 && module.ring() == 1;
+      }
+
+      void deployHalfServicesTo(const MaterialObject& source, MaterialObject& output) const {
+        MaterialObject services(MaterialObject::SERVICE, source.subdetectorName());
+        source.deployMaterialTo(services, unitsToPassServices, MaterialObject::ONLY_SERVICES);
+        for (const MaterialObject::Element* element : services.serviceElements_) {
+          output.addElement(new MaterialObject::Element(*element, 0.5));
+        }
+      }
     public:
       ServiceVisitor(ModuleSectionMap& moduleSectionAssociations, LayerRodSectionsMap& layerRodSections, DiskRodSectionsMap& diskRodSections) :
         moduleSectionAssociations_(moduleSectionAssociations),
@@ -1515,6 +1530,9 @@ namespace material {
       }
 
       void visit(const RodPair& rod) {
+        const auto& zMinusModules = rod.modules().second;
+        rodHasCentralModule_ = std::none_of(zMinusModules.begin(), zMinusModules.end(), [](const BarrelModule& m) { return m.ring() == 1; });
+
         if (firstRod) {
           rodSectionsSize = 0;
           for (Section* currSection : layerRodSections_.at(currLayer_).getSections()) {
@@ -1531,8 +1549,17 @@ namespace material {
       }
 
       void visit(const BarrelModule& module) {
-        if(module.maxZ() > 0) {
-          moduleSectionAssociations_.at(&module)->getServicesAndPass(module.materialObject());
+        if(module.side() > 0) {
+          Section* section = moduleSectionAssociations_.at(&module);
+          if (!isCentralModule(module)) {
+            section->getServicesAndPass(module.materialObject());
+            return;
+          }
+          // The central module has no z- partner. Its services are routed on the z+ side, which
+          // duplicateSections() then mirrors: route half of them so that they are counted once in total.
+          MaterialObject halfServices(MaterialObject::SERVICE, module.materialObject().subdetectorName());
+          deployHalfServicesTo(module.materialObject(), halfServices);
+          section->getServicesAndPass(halfServices);
 
           return;
 
